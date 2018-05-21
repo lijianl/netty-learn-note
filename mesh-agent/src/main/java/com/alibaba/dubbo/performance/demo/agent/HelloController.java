@@ -19,7 +19,7 @@ import java.util.Random;
 public class HelloController {
 
     private Logger logger = LoggerFactory.getLogger(HelloController.class);
-    
+
     private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
 
     private RpcClient rpcClient = new RpcClient(registry);
@@ -35,42 +35,49 @@ public class HelloController {
                          @RequestParam("parameterTypesString") String parameterTypesString,
                          @RequestParam("parameter") String parameter) throws Exception {
         String type = System.getProperty("type");   // 获取type参数
-        if ("consumer".equals(type)){
-            return consumer(interfaceName,method,parameterTypesString,parameter);
-        }
-        else if ("provider".equals(type)){
-            return provider(interfaceName,method,parameterTypesString,parameter);
-        }else {
+        if ("consumer".equals(type)) {
+            return consumer(interfaceName, method, parameterTypesString, parameter);
+        } else if ("provider".equals(type)) {
+            return provider(interfaceName, method, parameterTypesString, parameter);
+        } else {
             return "Environment variable type is needed to set to provider or consumer.";
         }
     }
 
-    public byte[] provider(String interfaceName,String method,String parameterTypesString,String parameter) throws Exception {
+    public byte[] provider(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
 
-        Object result = rpcClient.invoke(interfaceName,method,parameterTypesString,parameter);
+        Object result = rpcClient.invoke(interfaceName, method, parameterTypesString, parameter);
         return (byte[]) result;
     }
 
-    public Integer consumer(String interfaceName,String method,String parameterTypesString,String parameter) throws Exception {
+    public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
 
-        if (null == endpoints){
-            synchronized (lock){
-                if (null == endpoints){
+        if (null == endpoints) {
+            synchronized (lock) {
+                if (null == endpoints) {
                     endpoints = registry.find("com.alibaba.dubbo.performance.demo.provider.IHelloService");
                 }
             }
         }
 
+
+        /**
+         * 修改负载: 1. 使用netty 线程池代替http,
+         *
+         */
         // 简单的负载均衡，随机取一个
         Endpoint endpoint = endpoints.get(random.nextInt(endpoints.size()));
 
-        String url =  "http://" + endpoint.getHost() + ":" + endpoint.getPort();
+        /**
+         * 不能缓存结果 && 修改协议
+         */
+        String url = "http://" + endpoint.getHost() + ":" + endpoint.getPort();
 
         RequestBody requestBody = new FormBody.Builder()
-                .add("interface",interfaceName)
-                .add("method",method)
-                .add("parameterTypesString",parameterTypesString)
-                .add("parameter",parameter)
+                .add("interface", interfaceName)
+                .add("method", method)
+                .add("parameterTypesString", parameterTypesString)
+                .add("parameter", parameter)
                 .build();
 
         Request request = new Request.Builder()
