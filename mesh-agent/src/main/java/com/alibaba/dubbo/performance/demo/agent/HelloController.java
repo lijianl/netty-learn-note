@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @RestController
 public class HelloController {
@@ -45,20 +47,14 @@ public class HelloController {
     }
 
     public byte[] provider(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
-
         Object result = rpcClient.invoke(interfaceName, method, parameterTypesString, parameter);
         return (byte[]) result;
     }
 
+    /**
+     * 修改使用RPC
+     */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
-
-        if (null == endpoints) {
-            synchronized (lock) {
-                if (null == endpoints) {
-                    endpoints = registry.find("com.alibaba.dubbo.performance.demo.provider.IHelloService");
-                }
-            }
-        }
 
 
         /**
@@ -66,7 +62,7 @@ public class HelloController {
          *
          */
         // 简单的负载均衡，随机取一个
-        Endpoint endpoint = endpoints.get(random.nextInt(endpoints.size()));
+        Endpoint endpoint = selectEndPoint(registry);
 
         /**
          * 不能缓存结果 && 修改协议
@@ -85,11 +81,40 @@ public class HelloController {
                 .post(requestBody)
                 .build();
 
+        long start = System.currentTimeMillis();
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            long limit = System.currentTimeMillis() - start;
+            endpoint.setLimit(limit);
+            recordEndpoint(endpoints, endpoint);
             byte[] bytes = response.body().bytes();
             String s = new String(bytes);
             return Integer.valueOf(s);
+        }
+
+    }
+
+    private Endpoint selectEndPoint(IRegistry registry) throws Exception {
+        if (null == endpoints) {
+            synchronized (lock) {
+                if (null == endpoints) {
+                    endpoints = registry.find("com.alibaba.dubbo.performance.demo.provider.IHelloService");
+                }
+            }
+        }
+        List<Endpoint> endpointList = endpoints.stream().sorted(Comparator.comparing(Endpoint::getLimit)).collect(Collectors.toList());
+        return endpointList.get(0);
+    }
+
+    private void recordEndpoint(List<Endpoint> endpoints, Endpoint endpoint) {
+        if (null != endpoints) {
+            endpoints.forEach(
+                    e -> {
+                        if (e.equals(endpoint)) {
+                            e.setLimit(endpoint.getLimit());
+                        }
+                    }
+            );
         }
     }
 }

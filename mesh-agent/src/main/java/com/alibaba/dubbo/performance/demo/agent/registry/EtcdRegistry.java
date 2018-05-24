@@ -52,6 +52,9 @@ public class EtcdRegistry implements IRegistry {
         }
     }
 
+    /**
+     * 注册服务的端口是用TCP
+     */
     // 向ETCD中注册服务
     public void register(String serviceName, int port) throws Exception {
         // 服务注册的key为:    /dubbomesh/com.some.package.IHelloService/192.168.100.100:2000
@@ -60,6 +63,9 @@ public class EtcdRegistry implements IRegistry {
         ByteSequence val = ByteSequence.fromString("");     // 目前只需要创建这个key,对应的value暂不使用,先留空
         kv.put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
         logger.info("Register a new service at:" + strKey);
+        /**
+         * 启动本地RPC服务
+         */
     }
 
     // 发送心跳到ETCD,表明该host是活着的
@@ -83,7 +89,6 @@ public class EtcdRegistry implements IRegistry {
         ByteSequence key = ByteSequence.fromString(strKey);
         GetResponse response = kv.get(key, GetOption.newBuilder().withPrefix(key).build()).get();
         List<Endpoint> endpoints = new ArrayList<>();
-        int count = 1;
         for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()) {
             String s = kv.getKey().toStringUtf8();
             int index = s.lastIndexOf("/");
@@ -91,7 +96,7 @@ public class EtcdRegistry implements IRegistry {
 
             String host = endpointStr.split(":")[0];
             int port = Integer.valueOf(endpointStr.split(":")[1]);
-            endpoints.add(new Endpoint(count++, host, port));
+            endpoints.add(new Endpoint(0, host, port));
         }
         return endpoints;
     }
@@ -109,7 +114,5 @@ public class EtcdRegistry implements IRegistry {
         CompletableFuture<GetResponse> response = kvClient.get(key, GetOption.DEFAULT);
         String val = response.get().getKvs().get(0).getValue().toStringUtf8();
         System.out.println(val);
-
-
     }
 }

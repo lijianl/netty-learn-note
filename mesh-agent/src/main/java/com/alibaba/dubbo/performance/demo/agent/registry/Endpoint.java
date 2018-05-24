@@ -2,9 +2,9 @@ package com.alibaba.dubbo.performance.demo.agent.registry;
 
 public class Endpoint {
 
-    private final long limit;
-    private final String host;
-    private final int port;
+    private  long limit;
+    private  String host;
+    private  int port;
 
     public Endpoint(String host, int port) {
         this.host = host;
@@ -26,10 +26,12 @@ public class Endpoint {
         return port;
     }
 
+    @Override
     public String toString() {
         return host + ":" + port;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (!(o instanceof Endpoint)) {
             return false;
@@ -38,11 +40,24 @@ public class Endpoint {
         return other.host.equals(this.host) && other.port == this.port;
     }
 
+    @Override
+    public int hashCode() {
+        return host.hashCode() + port;
+    }
+
     public long getLimit() {
         return limit;
     }
 
-    public int hashCode() {
-        return host.hashCode() + port;
+    public void setLimit(long limit) {
+        this.limit = limit;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }
