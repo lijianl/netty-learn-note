@@ -37,14 +37,15 @@ public class NClient {
         request.setParameterTypesString(parameterTypesString);
         request.setParameter(parameter);
         try {
-            Endpoint endpoint = selectEndPoint(registry, request);
+            Endpoint endpoint = selectRandom(registry);
+            //Endpoint endpoint = selectEndPoint(registry, request);
             ClientHandler clientHandler = new ClientHandler(endpoint.getHost(), endpoint.getPort());
-            long start = System.currentTimeMillis();
+//            long start = System.currentTimeMillis();
             NResponse response = clientHandler.send(request);
             String res = response.getResult().toString();
-            long weight = System.currentTimeMillis() - start;
-            endpoint.setLimit(weight);
-            recordEndpoint(endpoints, endpoint);
+//            long weight = System.currentTimeMillis() - start;
+//            endpoint.setLimit(weight);
+//            recordEndpoint(endpoints, endpoint);
             return Integer.valueOf(res);
         } catch (Exception e) {
             e.printStackTrace();
