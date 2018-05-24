@@ -12,5 +12,6 @@ public class AgentApp {
 
     public static void main(String[] args) {
         SpringApplication.run(AgentApp.class,args);
+        System.out.println("args = [" + System.getProperty("etcd.url") + "]");
     }
 }

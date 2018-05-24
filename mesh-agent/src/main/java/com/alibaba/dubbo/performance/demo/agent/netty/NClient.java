@@ -21,6 +21,7 @@ public class NClient {
      * 本地缓存地址列表
      */
     private List<Endpoint> endpoints = null;
+    private Random random = new Random();
 
     public NClient(IRegistry registry) {
         this.registry = registry;
@@ -84,13 +85,6 @@ public class NClient {
         }
     }
 
-    public static void main(String[] args) {
-        Random random = new Random();
-        for (int i = 0; i < 10; i++) {
-            System.out.println("args = [" + random.nextInt(3) + "]");
-        }
-    }
-
     private Endpoint selectRandom(IRegistry registry) throws Exception {
         if (null == endpoints) {
             synchronized (NClient.class) {
@@ -99,6 +93,6 @@ public class NClient {
                 }
             }
         }
-        return endpoints.get(2);
+        return endpoints.get(random.nextInt(endpoints.size()));
     }
 }

@@ -1,6 +1,7 @@
 package com.alibaba.dubbo.performance.demo.agent;
 
 import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClient;
+import com.alibaba.dubbo.performance.demo.agent.netty.NClient;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.EtcdRegistry;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
@@ -17,14 +18,13 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-@RestController
+/*@RestController*/
 public class HelloController {
 
     private Logger logger = LoggerFactory.getLogger(HelloController.class);
+    private RpcClient rpcClient = new RpcClient();
+    private IRegistry registry = new EtcdRegistry(rpcClient, System.getProperty("etcd.url"));
 
-    private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
-
-    private RpcClient rpcClient = new RpcClient(registry);
     private Random random = new Random();
     private List<Endpoint> endpoints = null;
     private Object lock = new Object();
@@ -61,15 +61,14 @@ public class HelloController {
          * 修改负载: 1. 使用netty 线程池代替http,
          *
          */
-        // 简单的负载均衡，随机取一个
-        Endpoint endpoint = selectEndPoint(registry);
+        //Endpoint endpoint = selectEndPoint(registry);
 
         /**
          * 不能缓存结果 && 修改协议
          */
-        String url = "http://" + endpoint.getHost() + ":" + endpoint.getPort();
+        //String url = "http://" + endpoint.getHost() + ":" + endpoint.getPort();
 
-        RequestBody requestBody = new FormBody.Builder()
+        /*RequestBody requestBody = new FormBody.Builder()
                 .add("interface", interfaceName)
                 .add("method", method)
                 .add("parameterTypesString", parameterTypesString)
@@ -91,7 +90,12 @@ public class HelloController {
             String s = new String(bytes);
             return Integer.valueOf(s);
         }
-
+*/
+        /**
+         * 通过netty使用tcp
+         */
+        NClient client = new NClient(registry);
+        return client.call(interfaceName, method, parameterTypesString, parameter);
     }
 
     private Endpoint selectEndPoint(IRegistry registry) throws Exception {

@@ -1,5 +1,8 @@
 package com.alibaba.dubbo.performance.demo.agent.registry;
 
+import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClient;
+import com.alibaba.dubbo.performance.demo.agent.netty.NServer;
+import com.alibaba.dubbo.performance.demo.agent.netty.ServerHandler;
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Lease;
@@ -27,8 +30,14 @@ public class EtcdRegistry implements IRegistry {
     private Lease lease;
     private KV kv;
     private long leaseId;
+    private RpcClient rpcClient;
 
-    public EtcdRegistry(String registryAddress) {
+    public EtcdRegistry(RpcClient rpcClient, String registryAddress) {
+        this.rpcClient = rpcClient;
+        init(registryAddress);
+    }
+
+    public void init(String registryAddress) {
         Client client = Client.builder().endpoints(registryAddress).build();
         this.lease = client.getLeaseClient();
         this.kv = client.getKVClient();
@@ -44,7 +53,8 @@ public class EtcdRegistry implements IRegistry {
         if ("provider".equals(type)) {
             // 如果是provider，去etcd注册服务
             try {
-                int port = Integer.valueOf(System.getProperty("server.port"));
+                //TCP服务端口
+                int port = Integer.valueOf(System.getProperty("server.port")) + 1;
                 register("com.alibaba.dubbo.performance.demo.provider.IHelloService", port);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -60,12 +70,16 @@ public class EtcdRegistry implements IRegistry {
         // 服务注册的key为:    /dubbomesh/com.some.package.IHelloService/192.168.100.100:2000
         String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}", rootPath, serviceName, IpHelper.getHostIp(), String.valueOf(port));
         ByteSequence key = ByteSequence.fromString(strKey);
-        ByteSequence val = ByteSequence.fromString("");     // 目前只需要创建这个key,对应的value暂不使用,先留空
+        ByteSequence val = ByteSequence.fromString("");
         kv.put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
         logger.info("Register a new service at:" + strKey);
         /**
          * 启动本地RPC服务
          */
+        logger.info("启动netty-server at {}:{}", IpHelper.getHostIp(), port);
+        ServerHandler serverHandler = new ServerHandler(rpcClient);
+        NServer server = new NServer(IpHelper.getHostIp(), port, serverHandler);
+        server.start();
     }
 
     // 发送心跳到ETCD,表明该host是活着的
@@ -99,6 +113,15 @@ public class EtcdRegistry implements IRegistry {
             endpoints.add(new Endpoint(0, host, port));
         }
         return endpoints;
+    }
+
+
+    public RpcClient getRpcClient() {
+        return rpcClient;
+    }
+
+    public void setRpcClient(RpcClient rpcClient) {
+        this.rpcClient = rpcClient;
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
