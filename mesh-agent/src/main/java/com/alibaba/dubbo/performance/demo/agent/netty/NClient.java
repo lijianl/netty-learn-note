@@ -84,14 +84,20 @@ public class NClient {
     }
 
     public static void main(String[] args) {
-        List<Endpoint> endpoints = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            endpoints.add(new Endpoint(200 - i, "haha", 100));
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            System.out.println("args = [" + random.nextInt(3) + "]");
         }
-        /**
-         * 从小到大排序
-         */
-        List<Endpoint> endpointList = endpoints.stream().sorted(Comparator.comparing(Endpoint::getLimit)).collect(Collectors.toList());
-        endpointList.forEach(e -> System.out.println(e.getLimit()));
+    }
+
+    private Endpoint selectRandom(IRegistry registry) throws Exception {
+        if (null == endpoints) {
+            synchronized (NClient.class) {
+                if (null == endpoints) {
+                    endpoints = registry.find("com.alibaba.dubbo.performance.demo.provider.IHelloService");
+                }
+            }
+        }
+        return endpoints.get(2);
     }
 }
