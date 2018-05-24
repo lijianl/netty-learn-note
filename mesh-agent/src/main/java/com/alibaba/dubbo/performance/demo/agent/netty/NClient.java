@@ -17,7 +17,6 @@ public class NClient {
      * 实现注册路由
      */
     private IRegistry registry;
-
     /**
      * 本地缓存地址列表
      */
@@ -44,9 +43,8 @@ public class NClient {
             NResponse response = clientHandler.send(request);
             String res = response.getResult().toString();
             long weight = System.currentTimeMillis() - start;
-            endpoints.remove(endpoint);
             endpoint.setLimit(weight);
-            endpoints.add(endpoint);
+            recordEndpoint(endpoints, endpoint);
             return Integer.valueOf(res);
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,24 +56,31 @@ public class NClient {
      * 处理loadbalance: 更具响应时间作loadbalance
      * 随机实现
      */
-    public Endpoint selectEndPoint(IRegistry registry, NRequest request) {
-        try {
-            if (endpoints == null) {
-                synchronized (NClient.class) {
-                    if (endpoints == null) {
-                        endpoints = registry.find(request.getInterfaceName());
-                    }
+    public Endpoint selectEndPoint(IRegistry registry, NRequest request) throws Exception {
+        if (endpoints == null) {
+            synchronized (NClient.class) {
+                if (endpoints == null) {
+                    endpoints = registry.find(request.getInterfaceName());
                 }
             }
-            /**
-             *  重新从小到大排序，并发会使用响应时间最小的节点
-             */
-            List<Endpoint> endpointList = endpoints.stream().sorted(Comparator.comparing(Endpoint::getLimit)).collect(Collectors.toList());
-            return endpointList.get(0);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return null;
+        /**
+         *  重新从小到大排序，并发会使用响应时间最小的节点
+         */
+        List<Endpoint> endpointList = endpoints.stream().sorted(Comparator.comparing(Endpoint::getLimit)).collect(Collectors.toList());
+        return endpointList.get(0);
+    }
+
+    private void recordEndpoint(List<Endpoint> endpoints, Endpoint endpoint) {
+        if (null != endpoints) {
+            endpoints.parallelStream().forEach(
+                    e -> {
+                        if (e.equals(endpoint)) {
+                            e.setLimit(endpoint.getLimit());
+                        }
+                    }
+            );
+        }
     }
 
     public static void main(String[] args) {

@@ -39,7 +39,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
     }
 
     /**
-     * 发送请求
+     * consumer-agent发送请求到provider-agent
      */
     public NResponse send(NRequest request) throws Exception {
         EventLoopGroup group = new NioEventLoopGroup();

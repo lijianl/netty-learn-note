@@ -14,13 +14,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
-    private String host;
-    private Integer port;
     private RpcClient rpcClient;
 
-    public ServerHandler(String host, Integer port, RpcClient rpcClient) {
-        this.host = host;
-        this.port = port;
+    public ServerHandler(RpcClient rpcClient) {
         this.rpcClient = rpcClient;
     }
 
@@ -48,7 +44,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
     }
 
     /**
-     * 具体的处理请求
+     * 具体的处理请求:provider-agent调用dubbo服务
      */
     private Object handle(NRequest request) throws Throwable {
         String requestId = request.getRequestId();
