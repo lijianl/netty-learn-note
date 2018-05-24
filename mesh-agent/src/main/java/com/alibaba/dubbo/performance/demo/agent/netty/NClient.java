@@ -43,7 +43,8 @@ public class NClient {
         try {
             Endpoint endpoint = selectRandom(registry);
             //Endpoint endpoint = selectEndPoint(registry, request);
-            ClientHandler clientHandler = getHandler(endpoint);
+            //ClientHandler clientHandler = getHandler(endpoint);
+            ClientHandler clientHandler = new ClientHandler(endpoint.getHost(), endpoint.getPort());
 //            long start = System.currentTimeMillis();
             NResponse response = clientHandler.send(request);
             String res = response.getResult().toString();

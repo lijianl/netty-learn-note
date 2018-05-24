@@ -17,8 +17,6 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
 
     private Bootstrap bootstrap;
     private ChannelFuture channel;
-    private Object lock = new Object();
-
     private String host;
     private Integer port;
     private NResponse response;
@@ -68,18 +66,10 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
         }
 
         if (null == bootstrap) {
-            synchronized (lock) {
-                if (null == bootstrap) {
-                    initBootstrap();
-                }
-            }
+            initBootstrap();
         }
         if (null == channel) {
-            synchronized (lock) {
-                if (null == channel) {
-                    channel = bootstrap.connect(host, port).sync();
-                }
-            }
+            channel = bootstrap.connect(host, port).sync();
         }
         return channel;
     }
