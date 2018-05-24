@@ -3,8 +3,10 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
+import com.google.common.collect.Maps;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
@@ -17,6 +19,7 @@ public class NClient {
      * 实现注册路由
      */
     private IRegistry registry;
+    private ConcurrentMap<String, ClientHandler> handlerConcurrentMap = Maps.newConcurrentMap();
     /**
      * 本地缓存地址列表
      */
@@ -40,7 +43,7 @@ public class NClient {
         try {
             Endpoint endpoint = selectRandom(registry);
             //Endpoint endpoint = selectEndPoint(registry, request);
-            ClientHandler clientHandler = new ClientHandler(endpoint.getHost(), endpoint.getPort());
+            ClientHandler clientHandler = getHandler(endpoint);
 //            long start = System.currentTimeMillis();
             NResponse response = clientHandler.send(request);
             String res = response.getResult().toString();
@@ -94,5 +97,15 @@ public class NClient {
             }
         }
         return endpoints.get(random.nextInt(endpoints.size()));
+    }
+
+    private ClientHandler getHandler(Endpoint endpoint) {
+        String key = endpoint.toString();
+        ClientHandler handler = handlerConcurrentMap.get(key);
+        if (handler == null) {
+            handler = new ClientHandler(endpoint.getHost(), endpoint.getPort());
+            handlerConcurrentMap.put(key, handler);
+        }
+        return handler;
     }
 }

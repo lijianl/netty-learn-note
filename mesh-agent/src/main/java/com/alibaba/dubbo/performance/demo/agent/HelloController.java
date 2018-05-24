@@ -25,7 +25,6 @@ public class HelloController {
     private RpcClient rpcClient = new RpcClient();
     private IRegistry registry = new EtcdRegistry(rpcClient, System.getProperty("etcd.url"));
 
-    private Random random = new Random();
     private List<Endpoint> endpoints = null;
     private Object lock = new Object();
     private OkHttpClient httpClient = new OkHttpClient();

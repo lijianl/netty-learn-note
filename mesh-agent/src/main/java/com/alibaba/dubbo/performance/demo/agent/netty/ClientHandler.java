@@ -1,6 +1,7 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -14,9 +15,14 @@ import org.slf4j.LoggerFactory;
  */
 public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
 
+    private Bootstrap bootstrap;
+    private ChannelFuture channel;
+    private Object lock = new Object();
+
     private String host;
     private Integer port;
     private NResponse response;
+
     private Logger logger = LoggerFactory.getLogger(ClientHandler.class);
 
     public ClientHandler(String host, Integer port) {
@@ -42,22 +48,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
      * consumer-agent发送请求到provider-agent
      */
     public NResponse send(NRequest request) throws Exception {
-        EventLoopGroup group = new NioEventLoopGroup();
         try {
-            Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(group);
-            bootstrap.channel(NioSocketChannel.class);
-            bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                public void initChannel(SocketChannel channel) throws Exception {
-                    ChannelPipeline pipeline = channel.pipeline();
-                    pipeline.addLast(new NEncoder(NRequest.class));
-                    pipeline.addLast(new NDecoder(NResponse.class));
-                    pipeline.addLast(ClientHandler.this);
-                }
-            });
-            bootstrap.option(ChannelOption.TCP_NODELAY, true);
-            ChannelFuture future = bootstrap.connect(host, port).sync();
+            ChannelFuture future = getChannel();
             logger.info("connect-RPC-server-ok:{}:{}", host, port);
             //请求数据，关闭链接
             Channel channel = future.channel();
@@ -66,9 +58,50 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
             //返回请求结果
             return response;
         } finally {
-            group.shutdownGracefully();
+            bootstrap.clone();
         }
     }
 
+    public ChannelFuture getChannel() throws Exception {
+        if (null != channel) {
+            return channel;
+        }
 
+        if (null == bootstrap) {
+            synchronized (lock) {
+                if (null == bootstrap) {
+                    initBootstrap();
+                }
+            }
+        }
+        if (null == channel) {
+            synchronized (lock) {
+                if (null == channel) {
+                    channel = bootstrap.connect(host, port).sync();
+                }
+            }
+        }
+        return channel;
+    }
+
+
+    public void initBootstrap() {
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(100);
+        bootstrap = new Bootstrap()
+                .group(eventLoopGroup)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
+                .channel(NioSocketChannel.class);
+
+        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            public void initChannel(SocketChannel channel) throws Exception {
+                ChannelPipeline pipeline = channel.pipeline();
+                pipeline.addLast(new NEncoder(NRequest.class));
+                pipeline.addLast(new NDecoder(NResponse.class));
+                pipeline.addLast(ClientHandler.this);
+            }
+        });
+    }
 }
