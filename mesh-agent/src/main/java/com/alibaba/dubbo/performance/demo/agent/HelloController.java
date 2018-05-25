@@ -18,10 +18,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-/*@RestController*/
+@RestController
 public class HelloController {
 
-    private Logger logger = LoggerFactory.getLogger(HelloController.class);
     private RpcClient rpcClient = new RpcClient();
     private IRegistry registry = new EtcdRegistry(rpcClient, System.getProperty("etcd.url"));
 
