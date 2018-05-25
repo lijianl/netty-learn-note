@@ -76,7 +76,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
 
 
     public void initBootstrap() {
-        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(100);
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(10);
         bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
