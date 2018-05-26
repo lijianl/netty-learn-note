@@ -73,12 +73,8 @@ public class HelloController {
                 .post(requestBody)
                 .build();
 
-        long start = System.currentTimeMillis();
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-            long limit = System.currentTimeMillis() - start;
-            endpoint.setLimit(limit);
-            recordEndpoint(endpoints, endpoint);
             byte[] bytes = response.body().bytes();
             String s = new String(bytes);
             return Integer.valueOf(s);
