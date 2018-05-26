@@ -10,13 +10,13 @@ import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
 public class RpcClient {
+
     private Logger logger = LoggerFactory.getLogger(RpcClient.class);
 
     private ConnecManager connectManager;

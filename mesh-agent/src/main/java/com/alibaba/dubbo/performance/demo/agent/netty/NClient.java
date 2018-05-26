@@ -1,9 +1,13 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
 
+import com.alibaba.dubbo.performance.demo.agent.dubbo.model.Bytes;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
 import com.google.common.collect.Maps;
+import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
@@ -15,16 +19,18 @@ import java.util.stream.Collectors;
  */
 public class NClient {
 
+
+    private Logger logger = LoggerFactory.getLogger(NClient.class);
     /**
      * 实现注册路由
      */
-    private IRegistry registry;
-    private ConcurrentMap<String, ClientHandler> handlerConcurrentMap = Maps.newConcurrentMap();
+    private static ConcurrentMap<String, ClientManager> handlerConcurrentMap = Maps.newConcurrentMap();
+    private static List<Endpoint> endpoints = null;
     /**
      * 本地缓存地址列表
      */
-    private List<Endpoint> endpoints = null;
     private Random random = new Random();
+    private IRegistry registry;
 
     public NClient(IRegistry registry) {
         this.registry = registry;
@@ -34,24 +40,32 @@ public class NClient {
      * 处理请求
      */
     public Integer call(String interfaceName, String method, String parameterTypesString, String parameter) {
-        NRequest request = new NRequest();
-        request.setRequestId(UUID.randomUUID().toString());
-        request.setInterfaceName(interfaceName);
-        request.setMethodName(method);
-        request.setParameterTypesString(parameterTypesString);
-        request.setParameter(parameter);
         try {
+            NRequest request = new NRequest();
+            request.setRequestId(UUID.randomUUID().toString());
+            request.setInterfaceName(interfaceName);
+            request.setMethodName(method);
+            request.setParameterTypesString(parameterTypesString);
+            request.setParameter(parameter);
+            // 获取provider节点
             Endpoint endpoint = selectRandom(registry);
-            //Endpoint endpoint = selectEndPoint(registry, request);
-            //ClientHandler clientHandler = getHandler(endpoint);
-            ClientHandler clientHandler = new ClientHandler(endpoint.getHost(), endpoint.getPort());
-//            long start = System.currentTimeMillis();
-            NResponse response = clientHandler.send(request);
-            String res = response.getResult().toString();
-//            long weight = System.currentTimeMillis() - start;
-//            endpoint.setLimit(weight);
-//            recordEndpoint(endpoints, endpoint);
-            return Integer.valueOf(res);
+            ClientManager manager = getHandler(endpoint);
+
+            Channel channel = manager.getChannel();
+            // 保存请求
+            NFuture future = new NFuture();
+            NRequestHolder.put(request.getRequestId(), future);
+
+            channel.writeAndFlush(request);
+            logger.info("consumer-agent send :{}", request.getRequestId());
+            Object result = null;
+            try {
+                result = future.get();
+                logger.info("{}={}", request.getRequestId(), result);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return Bytes.bytes2int((byte[]) result);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,6 +103,9 @@ public class NClient {
         }
     }
 
+    /**
+     * 随机路由
+     */
     private Endpoint selectRandom(IRegistry registry) throws Exception {
         if (null == endpoints) {
             synchronized (NClient.class) {
@@ -100,13 +117,14 @@ public class NClient {
         return endpoints.get(random.nextInt(endpoints.size()));
     }
 
-    private ClientHandler getHandler(Endpoint endpoint) {
+
+    private ClientManager getHandler(Endpoint endpoint) {
         String key = endpoint.toString();
-        ClientHandler handler = handlerConcurrentMap.get(key);
-        if (handler == null) {
-            handler = new ClientHandler(endpoint.getHost(), endpoint.getPort());
-            handlerConcurrentMap.put(key, handler);
+        ClientManager manager = handlerConcurrentMap.get(key);
+        if (manager == null) {
+            manager = new ClientManager(endpoint.getHost(), endpoint.getPort());
+            handlerConcurrentMap.put(key, manager);
         }
-        return handler;
+        return manager;
     }
 }

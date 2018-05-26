@@ -8,6 +8,7 @@ public class NResponse {
     public String getRequestId() {
         return requestId;
     }
+
     public void setRequestId(String requestId) {
         this.requestId = requestId;
     }

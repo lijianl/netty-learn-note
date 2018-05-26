@@ -21,38 +21,42 @@ import org.slf4j.LoggerFactory;
 public class NServer {
 
     private Logger logger = LoggerFactory.getLogger(NServer.class);
-
     private String host;
     private Integer port;
-    private ServerHandler serverHandler;
 
-    public NServer(String host, Integer port, ServerHandler serverHandler) {
+    public NServer(String host, Integer port) {
         this.host = host;
         this.port = port;
-        this.serverHandler = serverHandler;
     }
 
-    public void start() throws Exception {
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
+    public void start() {
+        EventLoopGroup bossGroup = new NioEventLoopGroup(10);
         EventLoopGroup workerGroup = new NioEventLoopGroup(10);
-        ServerBootstrap bootstrap = new ServerBootstrap();
-        bootstrap.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .childHandler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    public void initChannel(SocketChannel channel) throws Exception {
-                        channel.pipeline()
-                                .addLast(new LengthFieldBasedFrameDecoder(65536, 0, 4, 0, 0))
-                                .addLast(new NDecoder(NRequest.class))
-                                .addLast(new NEncoder(NResponse.class))
-                                .addLast(serverHandler);
-                    }
-                })
-                .option(ChannelOption.SO_BACKLOG, 128)
-                .childOption(ChannelOption.SO_KEEPALIVE, true);
+        try {
+            ServerBootstrap bootstrap = new ServerBootstrap();
+            bootstrap.group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        public void initChannel(SocketChannel channel) throws Exception {
+                            channel.pipeline()
+                                    .addLast(new NDecoder(NRequest.class))
+                                    .addLast(new NEncoder(NResponse.class))
+                                    .addLast(new ServerHandler());
+                        }
+                    })
+                    .option(ChannelOption.SO_BACKLOG, 1024)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-        ChannelFuture future = bootstrap.bind(host, port).sync();
-        logger.info("Server started on port {}", port);
-        future.channel().closeFuture().sync();
+            ChannelFuture future = bootstrap.bind(host, port).sync();
+            logger.info("Provider agent on port {}", port);
+            future.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+        }
+
     }
 }

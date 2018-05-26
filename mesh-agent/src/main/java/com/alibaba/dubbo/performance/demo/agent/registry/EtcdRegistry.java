@@ -77,8 +77,7 @@ public class EtcdRegistry implements IRegistry {
          * 启动本地RPC服务
          */
         logger.info("启动netty-server at {}:{}", IpHelper.getHostIp(), port);
-        ServerHandler serverHandler = new ServerHandler(rpcClient);
-        NServer server = new NServer(IpHelper.getHostIp(), port, serverHandler);
+        NServer server = new NServer(IpHelper.getHostIp(), port);
         server.start();
     }
 
@@ -115,20 +114,11 @@ public class EtcdRegistry implements IRegistry {
         return endpoints;
     }
 
-
-    public RpcClient getRpcClient() {
-        return rpcClient;
-    }
-
-    public void setRpcClient(RpcClient rpcClient) {
-        this.rpcClient = rpcClient;
-    }
-
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         /**
          * 使用etcd 缓存
          */
-        String host = "http://127.0.0.1:2379";
+        /*String host = "http://127.0.0.1:2379";
         Client client = Client.builder().endpoints(host).build();
         KV kvClient = client.getKVClient();
         ByteSequence key = ByteSequence.fromString("test_key");
@@ -136,6 +126,7 @@ public class EtcdRegistry implements IRegistry {
         kvClient.put(key, value);
         CompletableFuture<GetResponse> response = kvClient.get(key, GetOption.DEFAULT);
         String val = response.get().getKvs().get(0).getValue().toStringUtf8();
-        System.out.println(val);
+        System.out.println(val);*/
+
     }
 }

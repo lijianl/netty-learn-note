@@ -1,6 +1,7 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClient;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -16,13 +17,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private RpcClient rpcClient;
 
-    public ServerHandler(RpcClient rpcClient) {
-        this.rpcClient = rpcClient;
+    public ServerHandler() {
+        rpcClient = new RpcClient();
     }
 
-    /**
-     * 处理request请求
-     */
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
         logger.debug("Receive request " + request.getRequestId());
@@ -34,7 +33,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
         } catch (Throwable t) {
             logger.error("RPC Server handle request error", t);
         }
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        // 发送返回结果
+        ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                logger.info("provider-agent-return:{}:{}", response.getRequestId(), response.getResult());
+            }
+        });
     }
 
     @Override
@@ -48,7 +53,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
      */
     private Object handle(NRequest request) throws Throwable {
         String requestId = request.getRequestId();
-        logger.info("agent-deal-with:{}", requestId);
+        logger.info("provider-agent-deal-with:{}", requestId);
         String interfaceName = request.getInterfaceName();
         String methodName = request.getMethodName();
         String parameterTypesString = request.getParameterTypesString();
