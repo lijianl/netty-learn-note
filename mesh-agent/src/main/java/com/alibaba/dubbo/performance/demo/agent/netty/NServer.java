@@ -52,7 +52,7 @@ public class NServer {
                 .childOption(ChannelOption.SO_KEEPALIVE, true);
 
         ChannelFuture future = bootstrap.bind(host, port).sync();
-        logger.info("Server started on port {}", port);
+        logger.info("Netty Server started on port {}", port);
         future.channel().closeFuture().sync();
     }
 }

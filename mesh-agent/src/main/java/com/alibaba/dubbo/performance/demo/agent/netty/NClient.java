@@ -24,10 +24,11 @@ public class NClient {
      * 本地缓存地址列表
      */
     private List<Endpoint> endpoints = null;
-    private Random random = new Random();
+    private Random random;
 
     public NClient(IRegistry registry) {
         this.registry = registry;
+        random = new Random();
     }
 
     /**
