@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,5 +53,12 @@ public class HelloController {
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
         NClient client = new NClient(registry);
         return client.call(interfaceName, method, parameterTypesString, parameter);
+
+        /*try (Response response = httpClient.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            byte[] bytes = response.body().bytes();
+            String s = new String(bytes);
+            return Integer.valueOf(s);
+        }*/
     }
 }

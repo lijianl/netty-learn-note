@@ -128,5 +128,9 @@ public class EtcdRegistry implements IRegistry {
         String val = response.get().getKvs().get(0).getValue().toStringUtf8();
         System.out.println(val);*/
 
+        String res = "aadsadfas";
+        int ri = res.hashCode();
+
+
     }
 }

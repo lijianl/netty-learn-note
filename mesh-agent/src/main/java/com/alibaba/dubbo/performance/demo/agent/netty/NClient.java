@@ -65,7 +65,8 @@ public class NClient {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return Bytes.bytes2int((byte[]) result);
+            String res = new String((byte[]) result);
+            return Integer.valueOf(res);
         } catch (Exception e) {
             e.printStackTrace();
         }
