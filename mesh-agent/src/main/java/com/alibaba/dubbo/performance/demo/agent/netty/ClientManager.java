@@ -28,12 +28,22 @@ public class ClientManager {
         if (null != channel) {
             return channel;
         }
+
         if (null == bootstrap) {
-            initBootstrap();
+            synchronized (ClientManager.class) {
+                if (null == bootstrap) {
+                    initBootstrap();
+                }
+            }
         }
+
         if (null == channel) {
-            logger.info("consumer connect to provider {}:{}", host, port);
-            channel = bootstrap.connect(host, port).sync().channel();
+            synchronized (ClientManager.class) {
+                if (null == channel) {
+                    logger.info("consumer connect to provider {}:{}", host, port);
+                    channel = bootstrap.connect(host, port).sync().channel();
+                }
+            }
         }
         return channel;
     }
@@ -41,7 +51,7 @@ public class ClientManager {
     /**
      * 保证方法的原子属性:函数式编程的误区
      */
-    public synchronized void initBootstrap() {
+    public void initBootstrap() {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(10);
         bootstrap = new Bootstrap()
                 .group(eventLoopGroup)

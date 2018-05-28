@@ -22,8 +22,8 @@ public class NClient {
     /**
      * 实现注册路由
      */
-    private static ConcurrentMap<String, ClientManager> handlerConcurrentMap = Maps.newConcurrentMap();
-    private static List<Endpoint> endpoints = null;
+    private ConcurrentMap<String, ClientManager> handlerConcurrentMap = Maps.newConcurrentMap();
+    private List<Endpoint> endpoints = null;
     /**
      * 本地缓存地址列表
      */
@@ -52,7 +52,6 @@ public class NClient {
             // 保存请求
             NFuture future = new NFuture();
             NRequestHolder.put(request.getRequestId(), future);
-
             channel.writeAndFlush(request);
             logger.info("consumer-agent send :{}", request.getRequestId());
             Object result = null;
@@ -101,9 +100,6 @@ public class NClient {
         }
     }
 
-    /**
-     * 随机路由
-     */
     private Endpoint selectRandom() throws Exception {
         if (null == endpoints) {
             synchronized (NClient.class) {
