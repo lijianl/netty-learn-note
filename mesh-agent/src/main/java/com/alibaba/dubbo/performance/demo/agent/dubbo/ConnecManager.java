@@ -12,8 +12,8 @@ public class ConnecManager {
     private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4);
 
     private Bootstrap bootstrap;
-
     private Channel channel;
+
     private Object lock = new Object();
 
     public ConnecManager() {

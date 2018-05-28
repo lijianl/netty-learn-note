@@ -15,6 +15,7 @@ public class ClientManager {
 
     private String host;
     private Integer port;
+
     private Bootstrap bootstrap;
     private Channel channel;
 
@@ -37,9 +38,8 @@ public class ClientManager {
         return channel;
     }
 
-    public void initBootstrap() {
+    public synchronized void initBootstrap() {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(10);
-
         bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
