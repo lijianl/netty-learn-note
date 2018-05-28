@@ -39,21 +39,21 @@ public class ClientManager {
 
     public void initBootstrap() {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(10);
+
         bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
-                .channel(NioSocketChannel.class);
-
-        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            public void initChannel(SocketChannel channel) throws Exception {
-                ChannelPipeline pipeline = channel.pipeline();
-                pipeline.addLast(new NEncoder(NRequest.class));
-                pipeline.addLast(new NDecoder(NResponse.class));
-                pipeline.addLast(new ClientHandler());
-            }
-        });
+                .channel(NioSocketChannel.class)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    public void initChannel(SocketChannel channel) throws Exception {
+                        ChannelPipeline pipeline = channel.pipeline();
+                        pipeline.addLast(new NEncoder(NRequest.class));
+                        pipeline.addLast(new NDecoder(NResponse.class));
+                        pipeline.addLast(new ClientHandler());
+                    }
+                });
     }
 }

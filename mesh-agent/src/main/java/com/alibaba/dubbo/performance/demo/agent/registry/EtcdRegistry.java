@@ -65,7 +65,6 @@ public class EtcdRegistry implements IRegistry {
     /**
      * 注册服务的端口是用TCP
      */
-    // 向ETCD中注册服务
     public void register(String serviceName, int port) throws Exception {
         // 服务注册的key为:    /dubbomesh/com.some.package.IHelloService/192.168.100.100:2000
         String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}", rootPath, serviceName, IpHelper.getHostIp(), String.valueOf(port));
@@ -81,7 +80,6 @@ public class EtcdRegistry implements IRegistry {
         server.start();
     }
 
-    // 发送心跳到ETCD,表明该host是活着的
     public void keepAlive() {
         Executors.newSingleThreadExecutor().submit(
                 () -> {
@@ -96,6 +94,10 @@ public class EtcdRegistry implements IRegistry {
         );
     }
 
+
+    /**
+     * 发现服务
+     */
     public List<Endpoint> find(String serviceName) throws Exception {
 
         String strKey = MessageFormat.format("/{0}/{1}", rootPath, serviceName);
@@ -127,10 +129,5 @@ public class EtcdRegistry implements IRegistry {
         CompletableFuture<GetResponse> response = kvClient.get(key, GetOption.DEFAULT);
         String val = response.get().getKvs().get(0).getValue().toStringUtf8();
         System.out.println(val);*/
-
-        String res = "aadsadfas";
-        int ri = res.hashCode();
-
-
     }
 }

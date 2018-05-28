@@ -1,7 +1,5 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
-
-import com.alibaba.dubbo.performance.demo.agent.dubbo.model.Bytes;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
 import com.google.common.collect.Maps;
@@ -48,9 +46,8 @@ public class NClient {
             request.setParameterTypesString(parameterTypesString);
             request.setParameter(parameter);
             // 获取provider节点
-            Endpoint endpoint = selectRandom(registry);
+            Endpoint endpoint = selectRandom();
             ClientManager manager = getHandler(endpoint);
-
             Channel channel = manager.getChannel();
             // 保存请求
             NFuture future = new NFuture();
@@ -107,7 +104,7 @@ public class NClient {
     /**
      * 随机路由
      */
-    private Endpoint selectRandom(IRegistry registry) throws Exception {
+    private Endpoint selectRandom() throws Exception {
         if (null == endpoints) {
             synchronized (NClient.class) {
                 if (null == endpoints) {
@@ -117,7 +114,6 @@ public class NClient {
         }
         return endpoints.get(random.nextInt(endpoints.size()));
     }
-
 
     private ClientManager getHandler(Endpoint endpoint) {
         String key = endpoint.toString();
