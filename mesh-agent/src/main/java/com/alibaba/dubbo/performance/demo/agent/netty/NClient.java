@@ -40,7 +40,6 @@ public class NClient {
     public Integer call(String interfaceName, String method, String parameterTypesString, String parameter) {
         try {
             NRequest request = new NRequest();
-            request.setRequestId(UUID.randomUUID().toString());
             request.setInterfaceName(interfaceName);
             request.setMethodName(method);
             request.setParameterTypesString(parameterTypesString);
@@ -51,7 +50,7 @@ public class NClient {
             Channel channel = manager.getChannel();
             // 保存请求
             NFuture future = new NFuture();
-            NRequestHolder.put(request.getRequestId(), future);
+            NRequestHolder.put(String.valueOf(request.getRequestId()), future);
             channel.writeAndFlush(request);
             logger.info("consumer-agent send :{}", request.getRequestId());
             Object result = null;

@@ -18,7 +18,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, NResponse response) throws Exception {
         logger.info("consumer read :{}:{}", response.getRequestId(), response.getResult());
-        String requestId = response.getRequestId();
+        String requestId = String.valueOf(response.getRequestId());
         NFuture future = NRequestHolder.get(requestId);
         if (null != future) {
             // 清空静态内存

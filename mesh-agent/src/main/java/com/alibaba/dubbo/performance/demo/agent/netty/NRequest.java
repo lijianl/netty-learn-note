@@ -1,18 +1,26 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class NRequest {
 
-    private String requestId;
+    private static AtomicLong atomicLong = new AtomicLong();
+
+    private long requestId;
     private String interfaceName;
     private String methodName;
     private String parameterTypesString;
     private String parameter;
 
-    public String getRequestId() {
+    public NRequest() {
+        requestId = atomicLong.getAndIncrement();
+    }
+
+    public long getRequestId() {
         return requestId;
     }
 
-    public void setRequestId(String requestId) {
+    public void setRequestId(long requestId) {
         this.requestId = requestId;
     }
 
