@@ -38,6 +38,9 @@ public class ClientManager {
         return channel;
     }
 
+    /**
+     * 保证方法的原子属性:函数式编程的误区
+     */
     public synchronized void initBootstrap() {
         EventLoopGroup eventLoopGroup = new NioEventLoopGroup(10);
         bootstrap = new Bootstrap()

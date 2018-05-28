@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 public class HelloController {
 
     private RpcClient rpcClient = new RpcClient();
-
     private IRegistry registry = new EtcdRegistry(rpcClient, System.getProperty("etcd.url"));
+    private NClient nClient = new NClient(registry);
 
     private List<Endpoint> endpoints = null;
     private Object lock = new Object();
@@ -51,14 +51,6 @@ public class HelloController {
      * 修改使用RPC
      */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
-        NClient client = new NClient(registry);
-        return client.call(interfaceName, method, parameterTypesString, parameter);
-
-        /*try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-            byte[] bytes = response.body().bytes();
-            String s = new String(bytes);
-            return Integer.valueOf(s);
-        }*/
+        return nClient.call(interfaceName, method, parameterTypesString, parameter);
     }
 }
