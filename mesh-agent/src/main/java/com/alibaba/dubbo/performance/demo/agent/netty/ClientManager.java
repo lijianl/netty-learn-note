@@ -15,7 +15,6 @@ public class ClientManager {
 
     private String host;
     private Integer port;
-
     private Bootstrap bootstrap;
     private Channel channel;
 

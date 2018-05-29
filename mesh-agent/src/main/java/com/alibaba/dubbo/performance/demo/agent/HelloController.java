@@ -32,7 +32,7 @@ public class HelloController {
                          @RequestParam("method") String method,
                          @RequestParam("parameterTypesString") String parameterTypesString,
                          @RequestParam("parameter") String parameter) throws Exception {
-        String type = System.getProperty("type");   // 获取type参数
+        String type = System.getProperty("type");
         if ("consumer".equals(type)) {
             return consumer(interfaceName, method, parameterTypesString, parameter);
         } else if ("provider".equals(type)) {

@@ -21,7 +21,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
         rpcClient = new RpcClient();
     }
 
-
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
         logger.debug("Receive request " + request.getRequestId());

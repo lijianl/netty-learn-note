@@ -4,8 +4,6 @@ import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
 import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
@@ -16,9 +14,6 @@ import java.util.stream.Collectors;
  * 封装请求, 封装loadbalance
  */
 public class NClient {
-
-
-    private Logger logger = LoggerFactory.getLogger(NClient.class);
     /**
      * 实现注册路由
      */
@@ -52,11 +47,9 @@ public class NClient {
             NFuture future = new NFuture();
             NRequestHolder.put(String.valueOf(request.getRequestId()), future);
             channel.writeAndFlush(request);
-            logger.info("consumer-agent send :{}", request.getRequestId());
             Object result = null;
             try {
                 result = future.get();
-                logger.info("{}={}", request.getRequestId(), result);
             } catch (Exception e) {
                 e.printStackTrace();
             }
