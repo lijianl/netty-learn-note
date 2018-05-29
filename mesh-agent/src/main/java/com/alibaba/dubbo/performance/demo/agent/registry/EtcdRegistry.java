@@ -108,7 +108,6 @@ public class EtcdRegistry implements IRegistry {
             String s = kv.getKey().toStringUtf8();
             int index = s.lastIndexOf("/");
             String endpointStr = s.substring(index + 1, s.length());
-
             String host = endpointStr.split(":")[0];
             int port = Integer.valueOf(endpointStr.split(":")[1]);
             endpoints.add(new Endpoint(0, host, port));

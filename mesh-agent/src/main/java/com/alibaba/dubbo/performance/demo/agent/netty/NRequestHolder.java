@@ -2,20 +2,23 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author a002
+ */
 public class NRequestHolder {
 
 
-    private static ConcurrentHashMap<String, NFuture> processingRpc = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Long, NFuture> processingRpc = new ConcurrentHashMap<>();
 
-    public static void put(String requestId, NFuture rpcFuture) {
+    public static void put(Long requestId, NFuture rpcFuture) {
         processingRpc.put(requestId, rpcFuture);
     }
 
-    public static NFuture get(String requestId) {
+    public static NFuture get(Long requestId) {
         return processingRpc.get(requestId);
     }
 
-    public static void remove(String requestId) {
+    public static void remove(Long requestId) {
         processingRpc.remove(requestId);
     }
 }

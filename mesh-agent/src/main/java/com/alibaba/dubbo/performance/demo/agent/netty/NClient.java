@@ -3,7 +3,11 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
 import com.google.common.collect.Maps;
-import io.netty.channel.Channel;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
@@ -45,7 +49,7 @@ public class NClient {
             Channel channel = manager.getChannel();
             // 保存请求
             NFuture future = new NFuture();
-            NRequestHolder.put(String.valueOf(request.getRequestId()), future);
+            NRequestHolder.put(request.getRequestId(), future);
             channel.writeAndFlush(request);
             Object result = null;
             try {
@@ -111,5 +115,30 @@ public class NClient {
             handlerConcurrentMap.put(key, manager);
         }
         return manager;
+    }
+
+    Channel getChannel(Endpoint endpoint) {
+        EventLoopGroup group = new NioEventLoopGroup();
+        Bootstrap bootstrap = new Bootstrap();
+        bootstrap.group(group);
+        bootstrap.channel(NioSocketChannel.class);
+        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            public void initChannel(SocketChannel channel) throws Exception {
+                ChannelPipeline pipeline = channel.pipeline();
+                pipeline.addLast(new NEncoder(NRequest.class));
+                pipeline.addLast(new NDecoder(NResponse.class));
+                pipeline.addLast(new ClientHandler());
+            }
+        });
+        bootstrap.option(ChannelOption.TCP_NODELAY, true);
+        // 连接 RPC 服务器
+        ChannelFuture future = null;
+        try {
+            return bootstrap.connect(endpoint.getHost(), endpoint.getPort()).sync().channel();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

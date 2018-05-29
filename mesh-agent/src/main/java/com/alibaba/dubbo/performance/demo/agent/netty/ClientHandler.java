@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 发送request请求
+ *
+ * @author a002
  */
 public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
 
@@ -18,7 +20,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, NResponse response) throws Exception {
         logger.info("consumer read :{}:{}", response.getRequestId(), response.getResult());
-        String requestId = String.valueOf(response.getRequestId());
+        Long requestId = response.getRequestId();
         NFuture future = NRequestHolder.get(requestId);
         if (null != future) {
             // 清空静态内存

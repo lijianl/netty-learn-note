@@ -9,6 +9,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author a002
+ */
 public class ClientManager {
 
     private Logger logger = LoggerFactory.getLogger(ClientManager.class);

@@ -50,8 +50,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
      * 具体的处理请求:provider-agent调用dubbo服务
      */
     private Object handle(NRequest request) throws Throwable {
-        long requestId = request.getRequestId();
-        logger.info("provider-agent-deal-with:{}", requestId);
         String interfaceName = request.getInterfaceName();
         String methodName = request.getMethodName();
         String parameterTypesString = request.getParameterTypesString();
