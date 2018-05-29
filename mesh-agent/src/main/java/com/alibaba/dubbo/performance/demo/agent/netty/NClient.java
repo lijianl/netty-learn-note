@@ -8,6 +8,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
  * 封装请求, 封装loadbalance
  */
 public class NClient {
+
+    private Logger logger = LoggerFactory.getLogger(NClient.class);
     /**
      * 实现注册路由
      */
@@ -31,6 +35,14 @@ public class NClient {
 
     public NClient(IRegistry registry) {
         this.registry = registry;
+        if (endpoints == null) {
+            try {
+                endpoints = registry.find("com.alibaba.dubbo.performance.demo.provider.IHelloService");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        logger.info("end point size:{}", endpoints.size());
     }
 
     /**
