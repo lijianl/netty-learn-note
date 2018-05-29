@@ -1,7 +1,7 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -56,7 +56,7 @@ public class ClientManager {
                 .group(eventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override

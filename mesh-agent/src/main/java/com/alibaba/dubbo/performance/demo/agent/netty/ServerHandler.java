@@ -23,7 +23,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
-        logger.debug("Receive request " + request.getRequestId());
         NResponse response = new NResponse();
         response.setRequestId(request.getRequestId());
         try {
