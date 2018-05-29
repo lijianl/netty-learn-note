@@ -12,6 +12,9 @@ import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
 
 
+/**
+ * 使用protostuff作序列化
+ */
 public class SerializationUtil {
 
     private static Map<Class<?>, Schema<?>> cachedSchema = new ConcurrentHashMap<>();

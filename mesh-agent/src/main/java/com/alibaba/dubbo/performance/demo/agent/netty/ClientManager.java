@@ -51,7 +51,7 @@ public class ClientManager {
      * 保证方法的原子属性:函数式编程的误区
      */
     public void initBootstrap() {
-        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(10);
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(200);
         bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
