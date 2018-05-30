@@ -1,8 +1,6 @@
 package com.alibaba.dubbo.performance.demo.agent.registry;
 
-import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClient;
 import com.alibaba.dubbo.performance.demo.agent.netty.NServer;
-import com.alibaba.dubbo.performance.demo.agent.netty.ServerHandler;
 import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Lease;
@@ -16,11 +14,11 @@ import org.slf4j.LoggerFactory;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 public class EtcdRegistry implements IRegistry {
+
     private Logger logger = LoggerFactory.getLogger(EtcdRegistry.class);
     // 该EtcdRegistry没有使用etcd的Watch机制来监听etcd的事件
     // 添加watch，在本地内存缓存地址列表，可减少网络调用的次数
@@ -30,10 +28,8 @@ public class EtcdRegistry implements IRegistry {
     private Lease lease;
     private KV kv;
     private long leaseId;
-    private RpcClient rpcClient;
 
-    public EtcdRegistry(RpcClient rpcClient, String registryAddress) {
-        this.rpcClient = rpcClient;
+    public EtcdRegistry(String registryAddress) {
         init(registryAddress);
     }
 

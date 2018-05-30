@@ -42,7 +42,7 @@ public class NClient {
                 e.printStackTrace();
             }
         }
-        logger.info("end point size:{}", endpoints.size());
+        logger.info("SA end point size:{}", endpoints.size());
     }
 
     /**
@@ -56,19 +56,25 @@ public class NClient {
             request.setParameterTypesString(parameterTypesString);
             request.setParameter(parameter);
             // 获取provider节点
+            long start = System.currentTimeMillis();
             Endpoint endpoint = selectRandom();
+
             ClientManager manager = getHandler(endpoint);
+            logger.info("SA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             Channel channel = manager.getChannel();
             // 保存请求
             NFuture future = new NFuture();
             NRequestHolder.put(request.getRequestId(), future);
             channel.writeAndFlush(request);
+            logger.info("SA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             Object result = null;
             try {
+                logger.info("SA start at :{}:{}", request.getRequestId(), System.currentTimeMillis());
                 result = future.get();
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            logger.info("SA3:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             String res = new String((byte[]) result);
             return Integer.valueOf(res);
         } catch (Exception e) {

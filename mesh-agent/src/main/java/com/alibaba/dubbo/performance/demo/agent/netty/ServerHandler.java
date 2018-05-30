@@ -24,18 +24,20 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
         NResponse response = new NResponse();
+        long start = System.currentTimeMillis();
+        logger.info("PA start at {}:{}", request.getRequestId(),start);
         response.setRequestId(request.getRequestId());
         try {
             Object result = handle(request);
             response.setResult(result);
         } catch (Throwable t) {
-            logger.error("RPC Server handle request error", t);
+            logger.error("PA handle request error", t);
         }
         // 发送返回结果
         ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                logger.info("provider-agent-return:{}:{}", response.getRequestId(), response.getResult());
+                logger.info("PA:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             }
         });
     }

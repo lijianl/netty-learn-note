@@ -1,7 +1,7 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -16,10 +16,12 @@ public class ClientManager {
 
     private Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
+    private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4);
     private String host;
     private Integer port;
     private Bootstrap bootstrap;
     private Channel channel;
+    private Object lock = new Object();
 
     public ClientManager(String host, Integer port) {
         this.host = host;
@@ -32,7 +34,7 @@ public class ClientManager {
         }
 
         if (null == bootstrap) {
-            synchronized (ClientManager.class) {
+            synchronized (lock) {
                 if (null == bootstrap) {
                     initBootstrap();
                 }
@@ -40,7 +42,7 @@ public class ClientManager {
         }
 
         if (null == channel) {
-            synchronized (ClientManager.class) {
+            synchronized (lock) {
                 if (null == channel) {
                     logger.info("consumer connect to provider {}:{}", host, port);
                     channel = bootstrap.connect(host, port).sync().channel();
@@ -54,12 +56,11 @@ public class ClientManager {
      * 保证方法的原子属性:函数式编程的误区
      */
     public void initBootstrap() {
-        EventLoopGroup eventLoopGroup = new NioEventLoopGroup(200);
         bootstrap = new Bootstrap()
                 .group(eventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override

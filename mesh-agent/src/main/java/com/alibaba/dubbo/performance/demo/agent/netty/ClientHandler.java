@@ -19,7 +19,6 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, NResponse response) throws Exception {
-        logger.info("consumer read :{}:{}", response.getRequestId(), response.getResult());
         Long requestId = response.getRequestId();
         NFuture future = NRequestHolder.get(requestId);
         if (null != future) {

@@ -29,7 +29,7 @@ public class NServer {
 
     public void start() {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup(300);
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
@@ -47,7 +47,7 @@ public class NServer {
                         }
                     });
             ChannelFuture future = bootstrap.bind(host, port).sync();
-            logger.info("Provider agent on port {}", port);
+            logger.info("PA start on port {}", port);
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
