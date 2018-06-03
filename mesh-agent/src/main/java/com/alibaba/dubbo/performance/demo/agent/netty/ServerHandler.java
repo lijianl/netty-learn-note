@@ -8,6 +8,9 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * 处理Nrequest请求
  */
@@ -17,27 +20,38 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private RpcClient rpcClient;
 
+    private ExecutorService service = Executors.newFixedThreadPool(200);
+
     public ServerHandler() {
         rpcClient = new RpcClient();
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
-        NResponse response = new NResponse();
-        long start = System.currentTimeMillis();
-        logger.info("PA start at {}:{}", request.getRequestId(),start);
-        response.setRequestId(request.getRequestId());
-        try {
-            Object result = handle(request);
-            response.setResult(result);
-        } catch (Throwable t) {
-            logger.error("PA handle request error", t);
-        }
-        // 发送返回结果
-        ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
+
+        service.execute(new Runnable() {
             @Override
-            public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                logger.info("PA:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+            public void run() {
+
+                logger.info("PA new Thread-{}", Thread.currentThread().getId());
+                NResponse response = new NResponse();
+                long start = System.currentTimeMillis();
+                logger.info("PA start at {}:{}", request.getRequestId(), start);
+                response.setRequestId(request.getRequestId());
+                try {
+                    Object result = handle(request);
+                    response.setResult(result);
+                } catch (Throwable t) {
+                    logger.error("PA handle request error", t);
+                }
+                // 发送返回结果
+                ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                        logger.info("PA:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+                    }
+                });
+
             }
         });
     }
