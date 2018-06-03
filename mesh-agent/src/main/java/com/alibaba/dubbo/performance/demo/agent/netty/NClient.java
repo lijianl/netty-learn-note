@@ -73,7 +73,7 @@ public class NClient {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            logger.info("CA3:{}:{}",endpoint.getHost(), System.currentTimeMillis() - start);
+            logger.info("CA3:{}:{}:{}",endpoint.getHost(),request.getRequestId(), System.currentTimeMillis() - start);
             String res = new String((byte[]) result);
             return Integer.valueOf(res);
         } catch (Exception e) {
