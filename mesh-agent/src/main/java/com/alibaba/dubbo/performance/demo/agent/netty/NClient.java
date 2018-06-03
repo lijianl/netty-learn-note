@@ -74,7 +74,7 @@ public class NClient {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            logger.info("CA3:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+            logger.info("CA3:{}:{}",endpoint.getHost(), System.currentTimeMillis() - start);
             String res = new String((byte[]) result);
             return Integer.valueOf(res);
         } catch (Exception e) {
@@ -126,7 +126,7 @@ public class NClient {
     }
 
     private ClientManager getHandler(Endpoint endpoint) {
-        String key = endpoint.toString();
+        String key = endpoint.getHost();
         ClientManager manager = handlerConcurrentMap.get(key);
         if (manager == null) {
             manager = new ClientManager(endpoint.getHost(), endpoint.getPort());
