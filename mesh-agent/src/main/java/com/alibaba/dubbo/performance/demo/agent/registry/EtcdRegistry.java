@@ -119,7 +119,7 @@ public class EtcdRegistry implements IRegistry {
             String[] hp = endpointStr.split(":");
             int port = Integer.valueOf(hp[1]);
             long weight = Long.parseLong(v);
-            logger.info("endPOint:{}配置的权重:{}", hp[0], weight);
+            logger.info("endPoint:{}配置的权重:{}", hp[0], weight);
             for (int i = 0; i < weight; i++) {
                 endpoints.add(new Endpoint(weight, hp[0], port));
             }
@@ -129,7 +129,7 @@ public class EtcdRegistry implements IRegistry {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         /**
-         * 使用etcd 缓存
+         * 使用etcd 缓存  - 代码提交失败
          */
         MemoryUsage memoryUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
         System.out.println("HEAP MAX = " + memoryUsage.getMax());
