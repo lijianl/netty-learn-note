@@ -15,5 +15,6 @@ public class AgentApp {
 
     public static void main(String[] args) {
         SpringApplication.run(AgentApp.class, args);
+        System.out.println("xxx= " + System.getProperty("Xms"));
     }
 }

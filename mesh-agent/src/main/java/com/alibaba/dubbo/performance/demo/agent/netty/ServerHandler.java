@@ -36,7 +36,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
                 logger.info("PA new Thread-{}", Thread.currentThread().getId());
                 NResponse response = new NResponse();
                 long start = System.currentTimeMillis();
-                logger.info("PA start at {}:{}", request.getRequestId(), start);
+                //logger.info("PA start at {}:{}", request.getRequestId(), start);
                 response.setRequestId(request.getRequestId());
                 try {
                     Object result = handle(request);

@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,7 @@ public class NClient {
     /**
      * 实现注册路由
      */
-    private ConcurrentMap<String, ClientManager> handlerConcurrentMap = Maps.newConcurrentMap();
+    private static ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>();
     private List<Endpoint> endpoints = null;
     /**
      * 本地缓存地址列表
@@ -58,18 +59,17 @@ public class NClient {
             // 获取provider节点
             long start = System.currentTimeMillis();
             Endpoint endpoint = selectRandom();
-
             ClientManager manager = getHandler(endpoint);
-            logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+            //logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             Channel channel = manager.getChannel();
             // 保存请求
             NFuture future = new NFuture();
             NRequestHolder.put(request.getRequestId(), future);
             channel.writeAndFlush(request);
-            logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+            //logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             Object result = null;
             try {
-                logger.info("CA start at :{}:{}", request.getRequestId(), System.currentTimeMillis());
+                //logger.info("CA start at :{}:{}", request.getRequestId(), System.currentTimeMillis());
                 result = future.get();
             } catch (Exception e) {
                 e.printStackTrace();
