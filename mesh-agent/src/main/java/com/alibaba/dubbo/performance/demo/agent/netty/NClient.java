@@ -42,7 +42,7 @@ public class NClient {
                 e.printStackTrace();
             }
         }
-        logger.info("SA end point size:{}", endpoints.size());
+        logger.info("CA end point size:{}", endpoints.size());
     }
 
     /**

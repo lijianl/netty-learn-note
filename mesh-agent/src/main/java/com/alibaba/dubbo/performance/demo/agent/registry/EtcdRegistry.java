@@ -71,7 +71,7 @@ public class EtcdRegistry implements IRegistry {
         /**
          * 启动本地RPC服务
          */
-        logger.info("启动netty-server at {}:{}", IpHelper.getHostIp(), port);
+        logger.info("启动 netty-server at {}:{}", IpHelper.getHostIp(), port);
         NServer server = new NServer(IpHelper.getHostIp(), port);
         server.start();
     }

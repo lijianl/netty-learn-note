@@ -2,13 +2,11 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,33 +20,42 @@ public class NServer {
     private String host;
     private Integer port;
 
+    private int DEFAULT_IO_THREADS = Math.min(Runtime.getRuntime().availableProcessors() + 1, 32);
+
+    private ServerBootstrap bootstrap;
+
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
+
     public NServer(String host, Integer port) {
         this.host = host;
         this.port = port;
     }
 
     public void start() {
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workerGroup = new NioEventLoopGroup(300);
+        bootstrap = new ServerBootstrap();
+        bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("NettyServerBoss", true));
+        workerGroup = new NioEventLoopGroup(DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyServerWorker", true));
         try {
-            ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
-                    .option(ChannelOption.SO_BACKLOG, 1024)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                    .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
+                    .childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                    .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
-                        public void initChannel(SocketChannel channel) throws Exception {
-                            channel.pipeline()
+                        protected void initChannel(NioSocketChannel ch) throws Exception {
+                            ch.pipeline()
                                     .addLast(new NDecoder(NRequest.class))
                                     .addLast(new NEncoder(NResponse.class))
                                     .addLast(new ServerHandler());
                         }
                     });
-            ChannelFuture future = bootstrap.bind(host, port).sync();
+            // bind
+            ChannelFuture channelFuture = bootstrap.bind(host, port).sync();
             logger.info("PA start on port {}", port);
-            future.channel().closeFuture().sync();
+            channelFuture.syncUninterruptibly().channel().closeFuture().sync();
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
