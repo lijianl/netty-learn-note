@@ -11,12 +11,13 @@ import com.coreos.jetcd.options.PutOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class EtcdRegistry implements IRegistry {
 
@@ -29,6 +30,11 @@ public class EtcdRegistry implements IRegistry {
     private Lease lease;
     private KV kv;
     private long leaseId;
+
+    static {
+        MemoryUsage memoryUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+        System.out.println("HEAP MAX = " + Runtime.getRuntime().maxMemory() / 1024 / 1024);
+    }
 
     public EtcdRegistry(String registryAddress) {
         init(registryAddress);
@@ -66,7 +72,11 @@ public class EtcdRegistry implements IRegistry {
         // 服务注册的key为:    /dubbomesh/com.some.package.IHelloService/192.168.100.100:2000
         String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}", rootPath, serviceName, IpHelper.getHostIp(), String.valueOf(port));
         ByteSequence key = ByteSequence.fromString(strKey);
-        ByteSequence val = ByteSequence.fromString("");
+        /**
+         * val存储权重
+         */
+        long weight = Runtime.getRuntime().maxMemory() / 1024 / 1024 / 500 + 1;
+        ByteSequence val = ByteSequence.fromString(String.valueOf(weight));
         kv.put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
         logger.info("Register a new service at:" + strKey);
         /**
@@ -103,11 +113,16 @@ public class EtcdRegistry implements IRegistry {
         List<Endpoint> endpoints = new ArrayList<>();
         for (com.coreos.jetcd.data.KeyValue kv : response.getKvs()) {
             String s = kv.getKey().toStringUtf8();
+            String v = kv.getValue().toStringUtf8();
             int index = s.lastIndexOf("/");
             String endpointStr = s.substring(index + 1, s.length());
             String[] hp = endpointStr.split(":");
             int port = Integer.valueOf(hp[1]);
-            endpoints.add(new Endpoint(0, hp[0], port));
+            long weight = Long.parseLong(v);
+            logger.info("endPOint:{}配置的权重:{}", hp[0], weight);
+            for (int i = 0; i < weight; i++) {
+                endpoints.add(new Endpoint(weight, hp[0], port));
+            }
         }
         return endpoints;
     }
@@ -116,14 +131,7 @@ public class EtcdRegistry implements IRegistry {
         /**
          * 使用etcd 缓存
          */
-        /*String host = "http://127.0.0.1:2379";
-        Client client = Client.builder().endpoints(host).build();
-        KV kvClient = client.getKVClient();
-        ByteSequence key = ByteSequence.fromString("test_key");
-        ByteSequence value = ByteSequence.fromString("test_value");
-        kvClient.put(key, value);
-        CompletableFuture<GetResponse> response = kvClient.get(key, GetOption.DEFAULT);
-        String val = response.get().getKvs().get(0).getValue().toStringUtf8();
-        System.out.println(val);*/
+        MemoryUsage memoryUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+        System.out.println("HEAP MAX = " + memoryUsage.getMax());
     }
 }

@@ -44,4 +44,6 @@ public class HelloController {
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
         return nClient.call(interfaceName, method, parameterTypesString, parameter);
     }
+
+
 }

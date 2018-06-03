@@ -2,9 +2,12 @@ package com.alibaba.dubbo.performance.demo.agent.registry;
 
 public class Endpoint {
 
-    private  long limit;
-    private  String host;
-    private  int port;
+    /**
+     * 权重设计
+     */
+    private long limit;
+    private String host;
+    private int port;
 
     public Endpoint(String host, int port) {
         this.host = host;

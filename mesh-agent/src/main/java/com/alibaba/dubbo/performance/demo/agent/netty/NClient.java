@@ -2,7 +2,6 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
-import com.google.common.collect.Maps;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -26,7 +25,7 @@ public class NClient {
     /**
      * 实现注册路由
      */
-    private static ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>();
+    private static ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>(16);
     private List<Endpoint> endpoints = null;
     /**
      * 本地缓存地址列表

@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NRequestHolder {
 
 
-    private static ConcurrentHashMap<Long, NFuture> processingRpc = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<Long, NFuture> processingRpc = new ConcurrentHashMap<>(1024);
 
     public static void put(Long requestId, NFuture rpcFuture) {
         processingRpc.put(requestId, rpcFuture);

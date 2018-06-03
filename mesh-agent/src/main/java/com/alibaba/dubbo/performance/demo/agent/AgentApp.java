@@ -3,6 +3,8 @@ package com.alibaba.dubbo.performance.demo.agent;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.lang.management.ManagementFactory;
+
 @SpringBootApplication
 public class AgentApp {
     // agent会作为sidecar，部署在每一个Provider和Consumer机器上
@@ -15,6 +17,6 @@ public class AgentApp {
 
     public static void main(String[] args) {
         SpringApplication.run(AgentApp.class, args);
-        System.out.println("xxx= " + System.getProperty("Xms"));
+
     }
 }
