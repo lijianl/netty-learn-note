@@ -20,7 +20,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private RpcClient rpcClient;
 
-    private ExecutorService service = Executors.newFixedThreadPool(300);
+    private ExecutorService service = Executors.newFixedThreadPool(500);
 
     public ServerHandler() {
         rpcClient = new RpcClient();
@@ -33,10 +33,10 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
             @Override
             public void run() {
 
-                logger.info("PA new Thread-{}", Thread.currentThread().getId());
-                NResponse response = new NResponse();
+                //logger.info("PA new Thread-{}", Thread.currentThread().getId());
                 long start = System.currentTimeMillis();
-                //logger.info("PA start at {}:{}", request.getRequestId(), start);
+                NResponse response = new NResponse();
+                logger.info("PA start at {}:{}", request.getRequestId(), start);
                 response.setRequestId(request.getRequestId());
                 try {
                     Object result = handle(request);
