@@ -20,7 +20,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private RpcClient rpcClient;
 
-    private ExecutorService service = Executors.newFixedThreadPool(200);
+    private ExecutorService service = Executors.newFixedThreadPool(300);
 
     public ServerHandler() {
         rpcClient = new RpcClient();
