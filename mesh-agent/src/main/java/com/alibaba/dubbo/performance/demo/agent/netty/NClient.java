@@ -49,7 +49,7 @@ public class NClient {
     }
 
     /**
-     * 处理请求
+     * 处理请求-local-test-ok
      */
     public Integer call(String interfaceName, String method, String parameterTypesString, String parameter) {
         try {
