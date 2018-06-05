@@ -60,38 +60,22 @@ public class NClient {
             request.setParameter(parameter);
             long start = System.currentTimeMillis();
             // 获取provider节点
+            Endpoint endpoint = selectRandom();
+            ClientManager manager = getHandler(endpoint);
             NFuture future = new NFuture();
-            sendService.execute(new Runnable() {
-                @Override
-                public void run() {
-
-                    try {
-
-                        long s = System.currentTimeMillis();
-                        Endpoint endpoint = selectRandom();
-                        ClientManager manager = getHandler(endpoint);
-                        logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - s);
-                        Channel channel = manager.getChannel();
-                        // 保存请求-阻塞地点1
-                        NRequestHolder.put(request.getRequestId(), future);
-                        channel.writeAndFlush(request);
-                        logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - s);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
+            NRequestHolder.put(request.getRequestId(), future);
+            Channel channel = manager.getChannel();
+            logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+            // 保存请求-阻塞地点1
+            channel.writeAndFlush(request);
+            logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             Object result = null;
             try {
                 result = future.get();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            logger.info("CA0:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
-
-
+            logger.info("CA3:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
             String res = new String((byte[]) result);
             return Integer.valueOf(res);
         } catch (Exception e) {

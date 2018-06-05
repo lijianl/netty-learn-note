@@ -44,11 +44,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
                 } catch (Throwable t) {
                     logger.error("PA handle request error", t);
                 }
+                logger.info("PA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
                 // 发送返回结果
                 ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                        logger.info("PA:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+                        logger.info("PA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
                     }
                 });
 
