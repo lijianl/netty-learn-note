@@ -59,7 +59,6 @@ public class NClient {
             request.setParameterTypesString(parameterTypesString);
             request.setParameter(parameter);
             long start = System.currentTimeMillis();
-            // 获取provider节点
             Endpoint endpoint = selectRandom();
             ClientManager manager = getHandler(endpoint);
             NFuture future = new NFuture();
