@@ -17,8 +17,10 @@ public class ClientManager {
 
     private Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
-    private static final NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("NettyClientWorker", true));
+    private NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("NettyClientWorker", true));
     private Object lock = new Object();
+
+
     private String host;
     private Integer port;
 
@@ -52,6 +54,7 @@ public class ClientManager {
                 }
             }
         }
+
         return channel;
     }
 

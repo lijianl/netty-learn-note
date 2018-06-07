@@ -23,8 +23,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
         NFuture future = NRequestHolder.get(requestId);
         if (null != future) {
             // 清空静态内存
-            NRequestHolder.remove(requestId);
             future.done(response);
+            NRequestHolder.remove(requestId);
         }
     }
 

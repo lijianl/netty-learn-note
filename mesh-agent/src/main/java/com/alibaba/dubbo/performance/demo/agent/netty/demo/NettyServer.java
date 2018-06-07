@@ -1,40 +1,47 @@
 package com.alibaba.dubbo.performance.demo.agent.netty.demo;
 
-import com.alibaba.dubbo.performance.demo.agent.netty.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NettyServer {
 
+    private static Logger logger = LoggerFactory.getLogger(NettyServer.class);
+
     public static void main(String[] args) {
+
         String host = "127.0.0.1";
         int port = 40000;
 
+        /**
+         * Epoll 模式 只支持 Linux
+         */
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup(200);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(2);
+
+        logger.info("boss:{}, worker:{}", bossGroup.toString(), workerGroup.toString());
+
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
-                    .option(ChannelOption.SO_BACKLOG, 1024)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
+                    .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
+                    .childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                    .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
-                        public void initChannel(SocketChannel channel) throws Exception {
-                            channel.pipeline()
-                                    .addLast(new StringHandler());
+                        protected void initChannel(NioSocketChannel ch) throws Exception {
+                            ch.pipeline()
+                                    .addLast(new EchoHandler());
                         }
                     });
             ChannelFuture future = bootstrap.bind(host, port).sync();
-            System.out.println("server-" + host + ":" + port);
+            System.out.println("server start at " + host + ":" + port);
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();

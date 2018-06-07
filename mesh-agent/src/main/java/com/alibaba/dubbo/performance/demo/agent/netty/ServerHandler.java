@@ -1,10 +1,7 @@
 package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClient;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +11,8 @@ import java.util.concurrent.Executors;
 /**
  * 处理Nrequest请求
  */
+
+@ChannelHandler.Sharable
 public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private Logger logger = LoggerFactory.getLogger(ServerHandler.class);
@@ -32,8 +31,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
         service.execute(new Runnable() {
             @Override
             public void run() {
-
-                //logger.info("PA new Thread-{}", Thread.currentThread().getId());
                 long start = System.currentTimeMillis();
                 NResponse response = new NResponse();
                 logger.info("PA start at {}:{}", request.getRequestId(), start);
@@ -52,7 +49,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
                         logger.info("PA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
                     }
                 });
-
             }
         });
     }
