@@ -16,7 +16,7 @@ public class HelloController {
 
     private RpcClient rpcClient = new RpcClient();
     private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
-    private NClient  nClient = new NClient(registry);
+    private NClient nClient = new NClient(registry);
 
     @RequestMapping(value = "")
     public Object invoke(@RequestParam("interface") String interfaceName,
@@ -40,6 +40,7 @@ public class HelloController {
 
     /**
      * 修改使用RPC
+     * 此处channel并发
      */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
         return nClient.call(interfaceName, method, parameterTypesString, parameter);

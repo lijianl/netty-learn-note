@@ -3,6 +3,7 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 public class NResponse {
 
     private long requestId;
+
     private Object result;
 
     public long getRequestId() {

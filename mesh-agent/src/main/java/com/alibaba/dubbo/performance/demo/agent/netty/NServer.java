@@ -6,9 +6,12 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -48,12 +51,14 @@ public class NServer {
                             ch.pipeline()
                                     .addLast(new NDecoder(NRequest.class))
                                     .addLast(new NEncoder(NResponse.class))
-                                    .addLast(new ServerHandler());
+                                    .addLast(new ServerHandler())
+                                    .addLast(new WriteTimeoutHandler(200, TimeUnit.MICROSECONDS));
                         }
                     });
             // bind
             ChannelFuture channelFuture = bootstrap.bind(host, port).sync();
             logger.info("PA start on port {}", port);
+
             channelFuture.syncUninterruptibly().channel().closeFuture().sync();
 
         } catch (InterruptedException e) {

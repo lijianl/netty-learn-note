@@ -45,8 +45,11 @@ public class NettyClient {
         return bootstrap.connect(host, port).sync().channel();
     }
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws InterruptedException {
+        Channel channel = getChannel();
+        while (true) {
+            channel.writeAndFlush("哈哈");
+        }
     }
 
 

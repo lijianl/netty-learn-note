@@ -25,15 +25,25 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
         rpcClient = new RpcClient();
     }
 
+
+    /**
+     * 优化方案:
+     * 1. clint-server启动多个channel[上限1024]
+     * + 占用太多端口，意味着部署少的服务
+     * 2. channel里面处理请求是多线程并发
+     * + 不能在所有的channnel里面实现多线程
+     * + TPS:1k
+     */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
 
+        // channel 内多线程请求 P
         service.execute(new Runnable() {
             @Override
             public void run() {
+                logger.info("PA start at {}:{}", request.getRequestId(), System.currentTimeMillis());
                 long start = System.currentTimeMillis();
                 NResponse response = new NResponse();
-                logger.info("PA start at {}:{}", request.getRequestId(), start);
                 response.setRequestId(request.getRequestId());
                 try {
                     Object result = handle(request);
@@ -42,11 +52,10 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
                     logger.error("PA handle request error", t);
                 }
                 logger.info("PA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
-                // 发送返回结果
                 ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                        logger.info("PA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+                        logger.info("PA2:{}:{}", response.getRequestId(), System.currentTimeMillis());
                     }
                 });
             }

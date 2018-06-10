@@ -3,7 +3,7 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 import java.util.concurrent.*;
 
 
-public class NFuture implements Future<Object> {
+public class NFuture implements Future<NResponse> {
 
     private CountDownLatch latch = new CountDownLatch(1);
     private NResponse response;
@@ -24,15 +24,15 @@ public class NFuture implements Future<Object> {
     }
 
     @Override
-    public Object get() throws InterruptedException, ExecutionException {
+    public NResponse get() throws InterruptedException, ExecutionException {
         latch.await();
-        return response.getResult();
+        return response;
     }
 
     @Override
-    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public NResponse get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         boolean b = latch.await(timeout, unit);
-        return response.getResult();
+        return response;
     }
 
     /**

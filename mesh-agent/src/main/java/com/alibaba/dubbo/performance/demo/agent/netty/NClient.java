@@ -68,14 +68,14 @@ public class NClient {
             // 保存请求-阻塞地点1
             channel.writeAndFlush(request);
             logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
-            Object result = null;
+            NResponse response = null;
             try {
-                result = future.get();
+                response = future.get();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            logger.info("CA3:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
-            String res = new String((byte[]) result);
+            logger.info("CA3:{}:{}", response.getRequestId(), System.currentTimeMillis() - start);
+            String res = new String((byte[]) response.getResult());
             return Integer.valueOf(res);
         } catch (Exception e) {
             e.printStackTrace();

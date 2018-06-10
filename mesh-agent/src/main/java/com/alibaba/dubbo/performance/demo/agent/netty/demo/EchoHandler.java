@@ -1,6 +1,5 @@
 package com.alibaba.dubbo.performance.demo.agent.netty.demo;
 
-import com.alibaba.dubbo.performance.demo.agent.netty.ClientHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
@@ -15,8 +14,8 @@ class EchoHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext chc, Object o) throws Exception {
-        /*System.out.println("server received  " + o.toString() + "thread: " + chc.channel().eventLoop().toString());
-        //chc.writeAndFlush(o);*/
+        /*System.out.println("server received  " + o.toString() + "thread: " + chc.channel().eventLoop().toString());*/
+        chc.writeAndFlush(o);
         logger.info("server receive {}", o.toString());
     }
 
