@@ -27,7 +27,7 @@ public class NClient {
     /**
      * 实现注册路由
      */
-    private ExecutorService sendService = Executors.newFixedThreadPool(500);
+    private ExecutorService sendService = Executors.newFixedThreadPool(200);
     private static ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>(16);
     private List<Endpoint> endpoints = null;
     /**
@@ -58,16 +58,28 @@ public class NClient {
             request.setMethodName(method);
             request.setParameterTypesString(parameterTypesString);
             request.setParameter(parameter);
-            long start = System.currentTimeMillis();
-            Endpoint endpoint = selectRandom();
-            ClientManager manager = getHandler(endpoint);
+
             NFuture future = new NFuture();
             NRequestHolder.put(request.getRequestId(), future);
-            Channel channel = manager.getChannel();
-            logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
-            // 保存请求-阻塞地点1
-            channel.writeAndFlush(request);
-            logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+            long start = System.currentTimeMillis();
+            sendService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        long s = System.currentTimeMillis();
+                        Endpoint endpoint = selectRandom();
+                        ClientManager manager = getHandler(endpoint);
+                        Channel channel = manager.getChannel();
+                        logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - s);
+                        // 保存请求-阻塞地点1
+                        channel.writeAndFlush(request);
+                        logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - s);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
             NResponse response = null;
             try {
                 response = future.get();

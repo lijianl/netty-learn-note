@@ -21,7 +21,7 @@ public class HelloController {
 
     private RpcClient rpcClient = new RpcClient();
     private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
-    /*private NClient nClient = new NClient(registry);*/
+    private NClient nClient = new NClient(registry);
     private List<NClient> clientList = new ArrayList<>(100);
     private Random random = new Random();
 
