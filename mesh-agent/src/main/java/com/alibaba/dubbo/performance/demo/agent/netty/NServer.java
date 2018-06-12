@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public class NServer {
         bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("NettyServerBoss", true));
         workerGroup = new NioEventLoopGroup(DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyServerWorker", true));
         try {
+
             bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
@@ -51,8 +53,7 @@ public class NServer {
                             ch.pipeline()
                                     .addLast(new NDecoder(NRequest.class))
                                     .addLast(new NEncoder(NResponse.class))
-                                    .addLast(new ServerHandler())
-                                    .addLast(new WriteTimeoutHandler(200, TimeUnit.MICROSECONDS));
+                                    .addLast(new ServerHandler());
                         }
                     });
             // bind

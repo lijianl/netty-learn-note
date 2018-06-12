@@ -37,12 +37,13 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
 
-        // channel 内多线程请求 P
+
         service.execute(new Runnable() {
             @Override
             public void run() {
-                logger.info("PA start at {}:{}", request.getRequestId(), System.currentTimeMillis());
                 long start = System.currentTimeMillis();
+                logger.info("PA start at {}:{}", request.getRequestId(), start);
+                Channel channel = ctx.channel();
                 NResponse response = new NResponse();
                 response.setRequestId(request.getRequestId());
                 try {
@@ -51,15 +52,17 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
                 } catch (Throwable t) {
                     logger.error("PA handle request error", t);
                 }
-                logger.info("PA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
-                ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
+                logger.info("PA1:{}:{}", response.getRequestId(), System.currentTimeMillis() - start);
+                channel.writeAndFlush(response).addListeners(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                        logger.info("PA2:{}:{}", response.getRequestId(), System.currentTimeMillis());
+                        logger.info("PA2:{}:{}", response.getRequestId(), System.currentTimeMillis() - start);
                     }
                 });
             }
         });
+
+
     }
 
     @Override
