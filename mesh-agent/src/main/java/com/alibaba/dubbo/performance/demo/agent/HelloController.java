@@ -8,6 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 /**
  * @author a002
  */
@@ -16,7 +21,9 @@ public class HelloController {
 
     private RpcClient rpcClient = new RpcClient();
     private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
-    private NClient nClient = new NClient(registry);
+    /*private NClient nClient = new NClient(registry);*/
+    private List<NClient> clientList = new ArrayList<>(100);
+    private Random random = new Random();
 
     @RequestMapping(value = "")
     public Object invoke(@RequestParam("interface") String interfaceName,
@@ -43,8 +50,21 @@ public class HelloController {
      * 此处channel并发
      */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
-        return nClient.call(interfaceName, method, parameterTypesString, parameter);
+        return getClient().call(interfaceName, method, parameterTypesString, parameter);
     }
 
+    @PostConstruct
+    public void init() {
+        String type = System.getProperty("type");
+        if ("consumer".equals(type)) {
+            for (int i = 0; i < 100; i++) {
+                NClient client = new NClient(registry);
+                clientList.add(client);
+            }
+        }
+    }
 
+    public NClient getClient() {
+        return clientList.get(random.nextInt(100));
+    }
 }
