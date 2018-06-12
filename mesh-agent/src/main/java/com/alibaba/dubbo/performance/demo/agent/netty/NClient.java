@@ -62,23 +62,14 @@ public class NClient {
             NFuture future = new NFuture();
             NRequestHolder.put(request.getRequestId(), future);
             long start = System.currentTimeMillis();
-            sendService.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        long s = System.currentTimeMillis();
-                        Endpoint endpoint = selectRandom();
-                        ClientManager manager = getHandler(endpoint);
-                        Channel channel = manager.getChannel();
-                        logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - s);
-                        // 保存请求-阻塞地点1
-                        channel.writeAndFlush(request);
-                        logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - s);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+
+            Endpoint endpoint = selectRandom();
+            ClientManager manager = getHandler(endpoint);
+            Channel channel = manager.getChannel();
+            logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+            // 保存请求-阻塞地点1
+            channel.writeAndFlush(request);
+            logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
 
             NResponse response = null;
             try {
