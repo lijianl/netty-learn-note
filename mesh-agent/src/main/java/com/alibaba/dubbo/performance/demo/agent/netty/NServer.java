@@ -10,7 +10,10 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 /**
@@ -65,6 +68,18 @@ public class NServer {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
+
+    }
+
+    public static void main(String[] args) {
+        /*ExecutorService service = Executors.newCachedThreadPool();
+        Future<Integer> resFutue = service.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return null;
+            }
+        });
+        resFutue.get();*/
 
     }
 }

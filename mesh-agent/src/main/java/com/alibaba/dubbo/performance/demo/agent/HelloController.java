@@ -14,6 +14,10 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author a002
@@ -28,6 +32,8 @@ public class HelloController {
     private NClient nClient = new NClient(registry);
     private List<NClient> clientList = new ArrayList<>(100);
     private Random random = new Random();
+
+    private ExecutorService service = Executors.newFixedThreadPool(100);
 
     @RequestMapping(value = "")
     public Object invoke(@RequestParam("interface") String interfaceName,
@@ -52,9 +58,18 @@ public class HelloController {
     /**
      * 修改使用RPC
      * 此处channel并发
+     * 需要增加异步
      */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
-        return getClient().call(interfaceName, method, parameterTypesString, parameter);
+
+        Future<Integer> res = service.submit(new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return clientList.get(random.nextInt(10)).call(interfaceName, method, parameterTypesString, parameter);
+            }
+        });
+
+        return res.get();
     }
 
     @PostConstruct
