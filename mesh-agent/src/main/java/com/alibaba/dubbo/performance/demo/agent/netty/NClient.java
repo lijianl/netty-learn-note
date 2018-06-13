@@ -48,6 +48,15 @@ public class NClient {
             }
         }
         logger.info("CA end point size:{}", endpoints.size());
+        // 客户端预热
+        if (endpoints.size() > 0) {
+            for (Endpoint p : endpoints) {
+                String key = p.getHost();
+                if (!handlerConcurrentMap.containsKey(key)) {
+                    handlerConcurrentMap.put(key, new ClientManager(p.getHost(), p.getPort()));
+                }
+            }
+        }
     }
 
     /**

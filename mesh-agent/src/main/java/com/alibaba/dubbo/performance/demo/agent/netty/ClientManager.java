@@ -32,6 +32,16 @@ public class ClientManager {
     public ClientManager(String host, Integer port) {
         this.host = host;
         this.port = port;
+        init();
+    }
+
+
+    void init() {
+        try {
+            getChannel();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public Channel getChannel() throws Exception {
