@@ -62,13 +62,14 @@ public class HelloController {
      */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
 
+        long start = System.currentTimeMillis();
         Future<Integer> res = service.submit(new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
                 return clientList.get(random.nextInt(10)).call(interfaceName, method, parameterTypesString, parameter);
             }
         });
-
+        logger.info("C:{}", System.currentTimeMillis() - start);
         return res.get();
     }
 
