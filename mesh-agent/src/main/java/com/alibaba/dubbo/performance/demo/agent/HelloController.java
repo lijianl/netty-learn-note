@@ -4,6 +4,8 @@ import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClient;
 import com.alibaba.dubbo.performance.demo.agent.netty.NClient;
 import com.alibaba.dubbo.performance.demo.agent.registry.EtcdRegistry;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +21,8 @@ import java.util.Random;
 @RestController
 public class HelloController {
 
+
+    private Logger logger = LoggerFactory.getLogger(HelloController.class);
     private RpcClient rpcClient = new RpcClient();
     private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
     private NClient nClient = new NClient(registry);
@@ -57,7 +61,7 @@ public class HelloController {
     public void init() {
         String type = System.getProperty("type");
         if ("consumer".equals(type)) {
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 10; i++) {
                 NClient client = new NClient(registry);
                 clientList.add(client);
             }
@@ -65,6 +69,8 @@ public class HelloController {
     }
 
     public NClient getClient() {
-        return clientList.get(random.nextInt(100));
+        int index = random.nextInt(10);
+        logger.info("index = {}", index);
+        return clientList.get(index);
     }
 }

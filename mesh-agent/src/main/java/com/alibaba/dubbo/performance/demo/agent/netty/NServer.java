@@ -6,8 +6,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +55,9 @@ public class NServer {
                         }
                     });
             // bind
-            ChannelFuture channelFuture = bootstrap.bind(host, port).sync();
+            ChannelFuture bind = bootstrap.bind(host, port);
             logger.info("PA start on port {}", port);
-
-            channelFuture.syncUninterruptibly().channel().closeFuture().sync();
+            bind.syncUninterruptibly().channel().closeFuture().sync();
 
         } catch (InterruptedException e) {
             e.printStackTrace();

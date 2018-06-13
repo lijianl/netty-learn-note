@@ -39,11 +39,14 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
 
         service.execute(new Runnable() {
+
             @Override
             public void run() {
+
                 long start = System.currentTimeMillis();
                 logger.info("PA start at {}:{}", request.getRequestId(), start);
                 Channel channel = ctx.channel();
+                logger.info("PA channel:{}:{}", channel.remoteAddress().toString(), channel.bytesBeforeWritable());
                 NResponse response = new NResponse();
                 response.setRequestId(request.getRequestId());
                 try {
@@ -60,6 +63,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
                     }
                 });
             }
+
         });
 
 

@@ -6,13 +6,10 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author a002
@@ -75,12 +72,10 @@ public class ClientManager {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel channel) throws Exception {
-                        ChannelPipeline pipeline = channel.pipeline();
-                        pipeline.addLast(new NEncoder(NRequest.class));
-                        pipeline.addLast(new NDecoder(NResponse.class));
-                        pipeline.addLast(new ClientHandler());
-                                /*.addLast(new ReadTimeoutHandler(200, TimeUnit.MICROSECONDS))
-                                .addLast(new WriteTimeoutHandler(100, TimeUnit.MICROSECONDS));*/
+                        channel.pipeline()
+                                .addLast(new NEncoder(NRequest.class))
+                                .addLast(new NDecoder(NResponse.class))
+                                .addLast(new ClientHandler());
                     }
                 });
     }

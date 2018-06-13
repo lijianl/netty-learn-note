@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
  *
  * @author a002
  */
+
+@ChannelHandler.Sharable
 public class ClientHandler extends SimpleChannelInboundHandler<NResponse> {
 
     private Logger logger = LoggerFactory.getLogger(ClientHandler.class);

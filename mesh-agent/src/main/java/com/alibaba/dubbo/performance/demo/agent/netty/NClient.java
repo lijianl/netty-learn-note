@@ -28,7 +28,9 @@ public class NClient {
      * 实现注册路由
      */
     private ExecutorService sendService = Executors.newFixedThreadPool(200);
-    private static ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>(16);
+
+    private ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>(16);
+
     private List<Endpoint> endpoints = null;
     /**
      * 本地缓存地址列表
@@ -87,37 +89,6 @@ public class NClient {
     }
 
     /**
-     * 处理loadbalance: 更具响应时间作loadbalance
-     * 随机实现
-     */
-    public Endpoint selectEndPoint(IRegistry registry, NRequest request) throws Exception {
-        if (endpoints == null) {
-            synchronized (NClient.class) {
-                if (endpoints == null) {
-                    endpoints = registry.find(request.getInterfaceName());
-                }
-            }
-        }
-        /**
-         *  重新从小到大排序，并发会使用响应时间最小的节点
-         */
-        List<Endpoint> endpointList = endpoints.stream().sorted(Comparator.comparing(Endpoint::getLimit)).collect(Collectors.toList());
-        return endpointList.get(0);
-    }
-
-    private void recordEndpoint(List<Endpoint> endpoints, Endpoint endpoint) {
-        if (null != endpoints) {
-            endpoints.parallelStream().forEach(
-                    e -> {
-                        if (e.equals(endpoint)) {
-                            e.setLimit(endpoint.getLimit());
-                        }
-                    }
-            );
-        }
-    }
-
-    /**
      * 可以选用dubbo随机优化算法,此处简化
      */
     private Endpoint selectRandom() throws Exception {
@@ -139,30 +110,5 @@ public class NClient {
             handlerConcurrentMap.put(key, manager);
         }
         return manager;
-    }
-
-    Channel getChannel(Endpoint endpoint) {
-        EventLoopGroup group = new NioEventLoopGroup();
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(group);
-        bootstrap.channel(NioSocketChannel.class);
-        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            public void initChannel(SocketChannel channel) throws Exception {
-                ChannelPipeline pipeline = channel.pipeline();
-                pipeline.addLast(new NEncoder(NRequest.class));
-                pipeline.addLast(new NDecoder(NResponse.class));
-                pipeline.addLast(new ClientHandler());
-            }
-        });
-        bootstrap.option(ChannelOption.TCP_NODELAY, true);
-        // 连接 RPC 服务器
-        ChannelFuture future = null;
-        try {
-            return bootstrap.connect(endpoint.getHost(), endpoint.getPort()).sync().channel();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
