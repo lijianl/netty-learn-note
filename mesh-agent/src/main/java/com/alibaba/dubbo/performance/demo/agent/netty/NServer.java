@@ -25,12 +25,11 @@ public class NServer {
     private String host;
     private Integer port;
 
-    private int DEFAULT_IO_THREADS = Math.min(Runtime.getRuntime().availableProcessors() + 1, 32);
+    private int DEFAULT_IO_THREADS = Math.min(Runtime.getRuntime().availableProcessors() * 2, 32);
 
     private ServerBootstrap bootstrap;
-
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
+    private NioEventLoopGroup bossGroup;
+    private NioEventLoopGroup workerGroup;
 
     public NServer(String host, Integer port) {
         this.host = host;
@@ -39,14 +38,18 @@ public class NServer {
 
     public void start() {
         bootstrap = new ServerBootstrap();
-        bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("NettyServerBoss", true));
+        bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("NettyServerBoss", false));
         workerGroup = new NioEventLoopGroup(DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyServerWorker", true));
+        workerGroup.setIoRatio(70);
         try {
 
             bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
+                    .option(ChannelOption.SO_BACKLOG, 1024)
+                    .option(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+                    .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
-                    .childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+                    .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
