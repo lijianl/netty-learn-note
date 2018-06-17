@@ -18,9 +18,8 @@ public class ClientManager {
 
     private Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
-    private NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("NettyClientWorker", true));
+    private NioEventLoopGroup nioEventLoopGroup = null;
     private Object lock = new Object();
-
 
     private String host;
     private Integer port;
@@ -32,16 +31,6 @@ public class ClientManager {
     public ClientManager(String host, Integer port) {
         this.host = host;
         this.port = port;
-        init();
-    }
-
-
-    void init() {
-        try {
-            getChannel();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public Channel getChannel() throws Exception {
@@ -74,6 +63,7 @@ public class ClientManager {
      */
     public void initBootstrap() {
         bootstrap = new Bootstrap();
+        nioEventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("NettyClientWorker", true));
         bootstrap.group(nioEventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)

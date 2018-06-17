@@ -17,11 +17,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private Logger logger = LoggerFactory.getLogger(ServerHandler.class);
 
-    private RpcClient rpcClient;
+    private RpcClient rpcClient = null;
 
     private ExecutorService service = Executors.newFixedThreadPool(200);
 
     public ServerHandler() {
+
         rpcClient = new RpcClient();
     }
 
@@ -38,6 +39,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
 
 
+        /**
+         * 业务线程池
+         */
         service.execute(new Runnable() {
 
             @Override

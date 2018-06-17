@@ -2,20 +2,13 @@ package com.alibaba.dubbo.performance.demo.agent.netty;
 
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
-import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * consumer-agent 代理启动
@@ -24,19 +17,12 @@ import java.util.stream.Collectors;
 public class NClient {
 
     private Logger logger = LoggerFactory.getLogger(NClient.class);
-    /**
-     * 实现注册路由
-     */
-    private ExecutorService sendService = Executors.newFixedThreadPool(200);
 
-    private ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>(16);
-
+    private ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>(128);
     private List<Endpoint> endpoints = null;
-    /**
-     * 本地缓存地址列表
-     */
     private Random random = new Random();
     private IRegistry registry;
+
 
     public NClient(IRegistry registry) {
         this.registry = registry;
@@ -47,16 +33,16 @@ public class NClient {
                 e.printStackTrace();
             }
         }
-        logger.info("CA end point size:{}", endpoints.size());
-        // 客户端预热
-        if (endpoints.size() > 0) {
+        logger.info("PA end point size:{}", endpoints.size());
+        // 客户端预热: 测试程序有预热运行
+        /*if (endpoints.size() > 0) {
             for (Endpoint p : endpoints) {
                 String key = p.getHost();
                 if (!handlerConcurrentMap.containsKey(key)) {
                     handlerConcurrentMap.put(key, new ClientManager(p.getHost(), p.getPort()));
                 }
             }
-        }
+        }*/
     }
 
     /**
@@ -64,6 +50,7 @@ public class NClient {
      */
     public Integer call(String interfaceName, String method, String parameterTypesString, String parameter) {
         try {
+
             NRequest request = new NRequest();
             request.setInterfaceName(interfaceName);
             request.setMethodName(method);

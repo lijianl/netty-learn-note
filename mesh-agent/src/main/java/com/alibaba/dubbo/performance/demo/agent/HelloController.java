@@ -1,6 +1,5 @@
 package com.alibaba.dubbo.performance.demo.agent;
 
-import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClient;
 import com.alibaba.dubbo.performance.demo.agent.netty.NClient;
 import com.alibaba.dubbo.performance.demo.agent.registry.EtcdRegistry;
 import com.alibaba.dubbo.performance.demo.agent.registry.IRegistry;
@@ -11,9 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,13 +23,16 @@ public class HelloController {
 
 
     private Logger logger = LoggerFactory.getLogger(HelloController.class);
-    private RpcClient rpcClient = new RpcClient();
-    private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
-    private NClient nClient = new NClient(registry);
-    private List<NClient> clientList = new ArrayList<>(100);
-    private Random random = new Random();
 
-    private ExecutorService service = Executors.newFixedThreadPool(100);
+    //private RpcClient rpcClient = new RpcClient();
+
+    private IRegistry registry = null;
+    private NClient nClient = null;
+
+    /**
+     * 业务端线程池
+     */
+    private ExecutorService service = Executors.newFixedThreadPool(200);
 
     @RequestMapping(value = "")
     public Object invoke(@RequestParam("interface") String interfaceName,
@@ -42,17 +41,21 @@ public class HelloController {
                          @RequestParam("parameter") String parameter) throws Exception {
         String type = System.getProperty("type");
         if ("consumer".equals(type)) {
+
             return consumer(interfaceName, method, parameterTypesString, parameter);
+
         } else if ("provider".equals(type)) {
-            return provider(interfaceName, method, parameterTypesString, parameter);
+            //return provider(interfaceName, method, parameterTypesString, parameter);
+            return "Environment provider type has changed to Netty Client.";
         } else {
             return "Environment variable type is needed to set to provider or consumer.";
         }
     }
 
     public byte[] provider(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
-        Object result = rpcClient.invoke(interfaceName, method, parameterTypesString, parameter);
-        return (byte[]) result;
+        //Object result = rpcClient.invoke(interfaceName, method, parameterTypesString, parameter);
+        //return (byte[]) result;
+        return null;
     }
 
     /**
@@ -61,32 +64,32 @@ public class HelloController {
      * 需要增加异步
      */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
-
-        long start = System.currentTimeMillis();
         Future<Integer> res = service.submit(new Callable<Integer>() {
             @Override
             public Integer call() throws Exception {
-                return clientList.get(random.nextInt(10)).call(interfaceName, method, parameterTypesString, parameter);
+                return nClient.call(interfaceName, method, parameterTypesString, parameter);
             }
         });
-        logger.info("C:{}", System.currentTimeMillis() - start);
         return res.get();
     }
 
+
+    /**
+     * 分开初始化减少环境资源占用
+     */
     @PostConstruct
     public void init() {
         String type = System.getProperty("type");
         if ("consumer".equals(type)) {
-            for (int i = 0; i < 10; i++) {
-                NClient client = new NClient(registry);
-                clientList.add(client);
-            }
+            logger.info("init CA.");
+            registry = new EtcdRegistry(System.getProperty("etcd.url"));
+            nClient = new NClient(registry);
+        }
+        if ("provider".equals(type)) {
+            logger.info("init PA.");
+            registry = new EtcdRegistry(System.getProperty("etcd.url"));
         }
     }
 
-    public NClient getClient() {
-        int index = random.nextInt(10);
-        logger.info("index = {}", index);
-        return clientList.get(index);
-    }
+
 }

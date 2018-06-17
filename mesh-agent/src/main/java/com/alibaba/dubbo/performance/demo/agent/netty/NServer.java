@@ -10,11 +10,6 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
 
 /**
  * provider-agent 启动的服务
@@ -40,7 +35,7 @@ public class NServer {
         bootstrap = new ServerBootstrap();
         bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("NettyServerBoss", false));
         workerGroup = new NioEventLoopGroup(DEFAULT_IO_THREADS, new DefaultThreadFactory("NettyServerWorker", true));
-        workerGroup.setIoRatio(70);
+        //workerGroup.setIoRatio(70);
         try {
 
             bootstrap.group(bossGroup, workerGroup)
@@ -75,14 +70,5 @@ public class NServer {
     }
 
     public static void main(String[] args) {
-        /*ExecutorService service = Executors.newCachedThreadPool();
-        Future<Integer> resFutue = service.submit(new Callable<Integer>() {
-            @Override
-            public Integer call() throws Exception {
-                return null;
-            }
-        });
-        resFutue.get();*/
-
     }
 }

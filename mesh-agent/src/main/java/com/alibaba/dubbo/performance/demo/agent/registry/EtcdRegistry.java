@@ -56,7 +56,9 @@ public class EtcdRegistry implements IRegistry {
         if ("provider".equals(type)) {
             // 如果是provider，去etcd注册服务
             try {
-                //TCP服务端口
+                /**
+                 * 注册PA服务
+                 */
                 int port = Integer.valueOf(System.getProperty("server.port")) + 1;
                 register("com.alibaba.dubbo.performance.demo.provider.IHelloService", port);
             } catch (Exception e) {
@@ -70,6 +72,7 @@ public class EtcdRegistry implements IRegistry {
      */
     public void register(String serviceName, int port) throws Exception {
         // 服务注册的key为:    /dubbomesh/com.some.package.IHelloService/192.168.100.100:2000
+
         String strKey = MessageFormat.format("/{0}/{1}/{2}:{3}", rootPath, serviceName, IpHelper.getHostIp(), String.valueOf(port));
         ByteSequence key = ByteSequence.fromString(strKey);
         /**
@@ -79,10 +82,11 @@ public class EtcdRegistry implements IRegistry {
         ByteSequence val = ByteSequence.fromString(String.valueOf(weight));
         kv.put(key, val, PutOption.newBuilder().withLeaseId(leaseId).build()).get();
         logger.info("Register a new service at:" + strKey);
+
         /**
          * 启动本地RPC服务
          */
-        logger.info("启动 netty-server at {}:{}", IpHelper.getHostIp(), port);
+        logger.info("启动 netty-server - CA at {}:{}", IpHelper.getHostIp(), port);
         NServer server = new NServer(IpHelper.getHostIp(), port);
         server.start();
     }
@@ -103,7 +107,7 @@ public class EtcdRegistry implements IRegistry {
 
 
     /**
-     * 发现服务
+     * 发现PA服务的节点
      */
     public List<Endpoint> find(String serviceName) throws Exception {
 
@@ -119,7 +123,7 @@ public class EtcdRegistry implements IRegistry {
             String[] hp = endpointStr.split(":");
             int port = Integer.valueOf(hp[1]);
             long weight = Long.parseLong(v);
-            logger.info("endPoint:{}配置的权重:{}", hp[0], weight);
+            logger.info("end Point:{}配置的权重:{}", hp[0], weight);
             for (int i = 0; i < weight; i++) {
                 endpoints.add(new Endpoint(weight, hp[0], port));
             }
