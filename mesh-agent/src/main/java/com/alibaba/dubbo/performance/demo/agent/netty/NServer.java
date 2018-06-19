@@ -6,6 +6,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ public class NServer {
     private String host;
     private Integer port;
 
-    private int DEFAULT_IO_THREADS = Math.min(Runtime.getRuntime().availableProcessors() * 2, 32);
+    private int DEFAULT_IO_THREADS = Math.min(Runtime.getRuntime().availableProcessors() + 1, 32);
 
     private ServerBootstrap bootstrap;
     private NioEventLoopGroup bossGroup;
@@ -52,6 +53,7 @@ public class NServer {
                             ch.pipeline()
                                     .addLast(new NDecoder(NRequest.class))
                                     .addLast(new NEncoder(NResponse.class))
+                                    //.addLast(new ProtobufDecoder())
                                     .addLast(new ServerHandler());
                         }
                     });

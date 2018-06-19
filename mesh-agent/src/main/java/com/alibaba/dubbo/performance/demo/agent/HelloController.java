@@ -20,19 +20,12 @@ import java.util.concurrent.Future;
  */
 @RestController
 public class HelloController {
-
-
     private Logger logger = LoggerFactory.getLogger(HelloController.class);
-
     //private RpcClient rpcClient = new RpcClient();
 
-    private IRegistry registry = null;
+    private IRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
     private NClient nClient = null;
-
-    /**
-     * 业务端线程池
-     */
-    private ExecutorService service = Executors.newFixedThreadPool(200);
+    private ExecutorService service = null;
 
     @RequestMapping(value = "")
     public Object invoke(@RequestParam("interface") String interfaceName,
@@ -59,9 +52,8 @@ public class HelloController {
     }
 
     /**
-     * 修改使用RPC
-     * 此处channel并发
-     * 需要增加异步
+     * web层已经使用了线程池，为什么此处还在使用?
+     * demo代码此处也使用了
      */
     public Integer consumer(String interfaceName, String method, String parameterTypesString, String parameter) throws Exception {
         Future<Integer> res = service.submit(new Callable<Integer>() {
@@ -82,12 +74,11 @@ public class HelloController {
         String type = System.getProperty("type");
         if ("consumer".equals(type)) {
             logger.info("init CA.");
-            registry = new EtcdRegistry(System.getProperty("etcd.url"));
             nClient = new NClient(registry);
+            service = Executors.newFixedThreadPool(200);
         }
         if ("provider".equals(type)) {
             logger.info("init PA.");
-            registry = new EtcdRegistry(System.getProperty("etcd.url"));
         }
     }
 

@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 发送request请求
- *
- * @author a002
  */
 
 @ChannelHandler.Sharable

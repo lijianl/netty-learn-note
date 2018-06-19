@@ -18,7 +18,7 @@ public class NClient {
 
     private Logger logger = LoggerFactory.getLogger(NClient.class);
 
-    private ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>(128);
+    private ConcurrentMap<String, ClientManager> handlerConcurrentMap = new ConcurrentHashMap<>();
     private List<Endpoint> endpoints = null;
     private Random random = new Random();
     private IRegistry registry;
@@ -59,23 +59,23 @@ public class NClient {
 
             NFuture future = new NFuture();
             NRequestHolder.put(request.getRequestId(), future);
-            long start = System.currentTimeMillis();
-
             Endpoint endpoint = selectRandom();
             ClientManager manager = getHandler(endpoint);
             Channel channel = manager.getChannel();
-            logger.info("CA1:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
+
+            long start = System.currentTimeMillis();
+            logger.info("CA1:{}:{}", request.getRequestId(), start);
             // 保存请求-阻塞地点1
             channel.writeAndFlush(request);
-            logger.info("CA2:{}:{}", request.getRequestId(), System.currentTimeMillis() - start);
-
+            logger.info("CA2:{}:{}:{}", request.getRequestId(), System.currentTimeMillis() - start, System.currentTimeMillis());
             NResponse response = null;
             try {
                 response = future.get();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            logger.info("CA3:{}:{}", response.getRequestId(), System.currentTimeMillis() - start);
+            long end = System.currentTimeMillis();
+            logger.info("CA3:{}:{}:{}", response.getRequestId(), end - start, end);
             String res = new String((byte[]) response.getResult());
             return Integer.valueOf(res);
         } catch (Exception e) {

@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author a002
+ * <p>
+ * 不需要初始化channel, 有预热程序
  */
 public class ClientManager {
 
@@ -65,10 +67,10 @@ public class ClientManager {
         bootstrap = new Bootstrap();
         nioEventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("NettyClientWorker", true));
         bootstrap.group(nioEventLoopGroup)
+                .channel(NioSocketChannel.class)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel channel) throws Exception {

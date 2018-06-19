@@ -1,16 +1,15 @@
 package com.alibaba.dubbo.performance.demo.agent.dubbo;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
 public class ConnecManager {
 
-    private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4);
+    private NioEventLoopGroup nioEventLoopGroup = null;
     private Bootstrap bootstrap;
     private Channel channel;
 
@@ -45,12 +44,12 @@ public class ConnecManager {
     }
 
     public void initBootstrap() {
-
+        nioEventLoopGroup = new NioEventLoopGroup(4);
         bootstrap = new Bootstrap()
-                .group(eventLoopGroup)
+                .group(nioEventLoopGroup)
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT)
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .channel(NioSocketChannel.class)
                 .handler(new RpcClientInitializer());
     }

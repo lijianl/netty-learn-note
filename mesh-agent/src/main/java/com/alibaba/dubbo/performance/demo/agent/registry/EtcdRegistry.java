@@ -17,11 +17,13 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class EtcdRegistry implements IRegistry {
 
-    private Logger logger = LoggerFactory.getLogger(EtcdRegistry.class);
+    private static Logger logger = LoggerFactory.getLogger(EtcdRegistry.class);
+
     // 该EtcdRegistry没有使用etcd的Watch机制来监听etcd的事件
     // 添加watch，在本地内存缓存地址列表，可减少网络调用的次数
     // 使用的是简单的随机负载均衡，如果provider性能不一致，随机策略会影响性能
@@ -137,5 +139,11 @@ public class EtcdRegistry implements IRegistry {
          */
         MemoryUsage memoryUsage = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
         System.out.println("HEAP MAX = " + memoryUsage.getMax());
+
+
+        /*ExecutorService service = Executors.newFixedThreadPool(2);
+        service.submit(() -> {
+            logger.info("10");
+        });*/
     }
 }

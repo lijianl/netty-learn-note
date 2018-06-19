@@ -19,10 +19,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
 
     private RpcClient rpcClient = null;
 
-    private ExecutorService service = Executors.newFixedThreadPool(200);
+    private ExecutorService service = Executors.newFixedThreadPool(300);
 
     public ServerHandler() {
-
         rpcClient = new RpcClient();
     }
 
@@ -38,39 +37,34 @@ public class ServerHandler extends SimpleChannelInboundHandler<NRequest> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, NRequest request) throws Exception {
 
-
         /**
          * 业务线程池
          */
-        service.execute(new Runnable() {
+        logger.info("PA accept at:{}:{}", request.getRequestId(), System.currentTimeMillis());
 
-            @Override
-            public void run() {
+        service.execute(() -> {
 
-                long start = System.currentTimeMillis();
-                logger.info("PA start at {}:{}", request.getRequestId(), start);
-                Channel channel = ctx.channel();
-                logger.info("PA channel:{}:{}", channel.remoteAddress().toString(), channel.bytesBeforeWritable());
-                NResponse response = new NResponse();
-                response.setRequestId(request.getRequestId());
-                try {
-                    Object result = handle(request);
-                    response.setResult(result);
-                } catch (Throwable t) {
-                    logger.error("PA handle request error", t);
-                }
-                logger.info("PA1:{}:{}", response.getRequestId(), System.currentTimeMillis() - start);
-                channel.writeAndFlush(response).addListeners(new ChannelFutureListener() {
-                    @Override
-                    public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                        logger.info("PA2:{}:{}", response.getRequestId(), System.currentTimeMillis() - start);
-                    }
-                });
+            long start = System.currentTimeMillis();
+            logger.info("PA start at {}:{}", request.getRequestId(), start);
+            Channel channel = ctx.channel();
+            NResponse response = new NResponse();
+            response.setRequestId(request.getRequestId());
+            try {
+                Object result = handle(request);
+                response.setResult(result);
+            } catch (Throwable t) {
+                logger.error("PA handle request error", t);
             }
+            logger.info("PA1:{}:{}", response.getRequestId(), System.currentTimeMillis() - start);
+            channel.writeAndFlush(response).addListeners(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                    long end = System.currentTimeMillis();
+                    logger.info("PA2:{}:{}", response.getRequestId(), end - start, end);
+                }
+            });
 
         });
-
-
     }
 
     @Override
